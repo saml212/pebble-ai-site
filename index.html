@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Pebble AI is researching neural architectures using matrix-valued token representations. 26 experiments on H100 GPUs with proven novel findings in representation quality and emergent thinking dynamics.">
+    <meta property="og:title" content="Pebble AI — Matrix-Valued Reasoning Architectures">
+    <meta property="og:description" content="Research on neural architectures that think in matrices, not vectors. Verified novel findings across 26 rigorous experiments.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pebbleml.com">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect fill='%236c63ff' width='64' height='64' rx='8'/><text x='32' y='42' font-size='32' font-weight='bold' fill='white' text-anchor='middle' font-family='system-ui'>P</text></svg>">
+    <title>Pebble AI — Matrix-Valued Reasoning Architectures</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --border: #1e1e2e;
+            --text: #e0e0e8;
+            --muted: #8888a0;
+            --accent: #6c63ff;
+            --accent2: #00d4aa;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+        /* Nav */
+        nav {
+            padding: 24px 0;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            z-index: 100;
+        }
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .logo span { color: var(--accent); }
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-left: 24px;
+            transition: color 0.2s;
+        }
+        nav a:hover { color: var(--text); }
+
+        /* Hero */
+        .hero {
+            padding: 100px 0 80px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            margin-bottom: 24px;
+        }
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--muted);
+            max-width: 640px;
+            margin: 0 auto 40px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-size: 0.8rem;
+            color: var(--accent2);
+            margin-bottom: 24px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            padding: 40px 0;
+        }
+        .stat {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px 16px;
+            text-align: center;
+        }
+        .stat .num {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+        .stat .label {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        /* Sections */
+        section {
+            padding: 60px 0;
+            border-top: 1px solid var(--border);
+        }
+        section h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            letter-spacing: -0.02em;
+        }
+        section h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--accent2);
+        }
+        section p {
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 24px;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+        }
+        .card p { margin-bottom: 0; }
+
+        /* Results table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        th {
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        td { color: var(--text); }
+        td strong { color: var(--accent2); }
+
+        /* Team */
+        .team-member {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+            margin-top: 20px;
+        }
+        .avatar {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        /* Honest Negatives */
+        .negatives-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .negative {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .negative h4 {
+            font-size: 0.95rem;
+            color: var(--muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+        .negative p {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-bottom: 0;
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+        footer a { color: var(--accent); text-decoration: none; }
+
+        @media (max-width: 640px) {
+            .hero h1 { font-size: 2rem; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .card-grid { grid-template-columns: 1fr; }
+            .negatives-grid { grid-template-columns: 1fr; }
+            nav a { margin-left: 12px; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <div class="logo">pebble<span>AI</span></div>
+        <div>
+            <a href="#research">Research</a>
+            <a href="#findings">Findings</a>
+            <a href="#negatives">Honest Results</a>
+            <a href="#roadmap">Roadmap</a>
+            <a href="#team">Team</a>
+            <a href="mailto:sam@pebbleml.com">Contact</a>
+        </div>
+    </div>
+</nav>
+
+<header class="hero">
+    <div class="container">
+        <div class="badge">Novel Architecture Research</div>
+        <h1>AI that thinks in <span class="highlight">matrices</span>,<br>not vectors</h1>
+        <p>Pebble AI is developing next-generation neural architectures where models reason through structured matrix representations. 26 rigorous experiments on H100 GPUs with verified novel findings in representation quality and emergent thinking dynamics.</p>
+    </div>
+</header>
+
+<div class="container">
+    <div class="stats">
+        <div class="stat">
+            <div class="num">26</div>
+            <div class="label">Experiments Completed</div>
+        </div>
+        <div class="stat">
+            <div class="num">26%</div>
+            <div class="label">Better Per-Param Quality</div>
+        </div>
+        <div class="stat">
+            <div class="num">130x</div>
+            <div class="label">Parameter Efficiency</div>
+        </div>
+        <div class="stat">
+            <div class="num">8xH100</div>
+            <div class="label">Infrastructure Used</div>
+        </div>
+    </div>
+</div>
+
+<section id="research">
+    <div class="container">
+        <h2>The Research</h2>
+        <p>Current neural networks think in flat vectors — fixed-length lists of numbers with no internal structure and no measurable notion of complexity. We replace this with matrix-valued representations where matrix rank provides a measurable complexity axis. Models process these matrices through multiplicative composition that can build rank, and we've discovered that the output architecture determines whether thinking enriches or collapses representations.</p>
+
+        <div class="card-grid">
+            <div class="card">
+                <h3>Matrix Representations</h3>
+                <p>Each token is a 32x32 matrix instead of a 1024-dim vector. Outer-product embeddings create structured, low-rank initializations. Multiplicative composition (matrix multiplication) builds rank iteratively — a mechanism impossible with vectors.</p>
+            </div>
+            <div class="card">
+                <h3>Rank as Abstraction</h3>
+                <p>A matrix's effective rank (via SVD) measures how many independent concepts it encodes. We've shown rank enrichment is emergent and output-head-dependent: MultiProbeHead drives rank 7.55; zero-param head drives rank 5.0. Same model, different dynamics.</p>
+            </div>
+            <div class="card">
+                <h3>Iterative Refinement</h3>
+                <p>Models generate sequences of matrix-valued thoughts before output. Each thought attends to inputs and previous thoughts. Thinking benefit scales monotonically: 1.6% (N=1), 2.8% (N=2), 10.6% (N=4). Mechanism validated mechanically; scale effects unknown.</p>
+            </div>
+            <div class="card">
+                <h3>Passage-Level Adaptive Compute</h3>
+                <p>A certainty-driven mode-switching mechanism: running average of recent prediction uncertainty modulates thinking depth. Grounded in locus coeruleus neuroscience. Verified novel — every existing adaptive compute system uses per-token decisions.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="findings">
+    <div class="container">
+        <h2>Verified Findings</h2>
+        <p>26 experiments across 8xH100 GPUs with rigorous methodology: pre-experiment checklists, hypothesis-driven design, comprehensive literature verification, and honest negative results.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Finding</th>
+                    <th>Result</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Outer-product embedding advantage (T=1)</td>
+                    <td><strong>26% better</strong> per-parameter quality vs vectors</td>
+                    <td>Proven</td>
+                </tr>
+                <tr>
+                    <td>Rank enrichment is output-head-dependent</td>
+                    <td><strong>Novel phenomenon</strong> — MultiProbeHead rank 7.55 vs ZeroParam rank 5.0</td>
+                    <td>Proven</td>
+                </tr>
+                <tr>
+                    <td>Matrix operations parameter efficiency</td>
+                    <td><strong>130x more efficient</strong> per layer vs vector attention</td>
+                    <td>Proven</td>
+                </tr>
+                <tr>
+                    <td>Thought interleaving benefit scaling</td>
+                    <td>1.6% (N=1) to 10.6% (N=4) — monotonic with thought count</td>
+                    <td>Proven</td>
+                </tr>
+                <tr>
+                    <td>Adaptive compute novelty</td>
+                    <td>Passage-level uncertainty → thinking depth. No prior system uses this.</td>
+                    <td>Novel</td>
+                </tr>
+                <tr>
+                    <td>Matrix structure advantage at scale</td>
+                    <td>Requires 10M+ params minimum for conclusive evidence</td>
+                    <td>Next Phase</td>
+                </tr>
+                <tr>
+                    <td>Cross-domain generalization</td>
+                    <td>Raw bytes (text + image + audio) — structure-dependent transfer</td>
+                    <td>Next Phase</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 style="margin-top: 32px;">Literature Validation</h3>
+        <p>Architecture verified against: COCONUT (Meta 2024), CoCoMix (Meta 2025), LoopFormer (ICLR 2026), Seq-VCR (ICLR 2025), MBLM (IBM 2025), bGPT (2024), EverMind MSA (2026), Quiet-STaR (Stanford), and 12 comprehensive research documents on thought generation, byte-level modeling, and neural reasoning.</p>
+    </div>
+</section>
+
+<section id="negatives">
+    <div class="container">
+        <h2>Honest Negative Results</h2>
+        <p>Rigorous research means documenting failures as thoroughly as successes. These negative results are equally important — they narrow the hypothesis space and guide future work.</p>
+
+        <div class="negatives-grid">
+            <div class="negative">
+                <h4>Matrix Ops Don't Beat Vectors at Matched FLOPs</h4>
+                <p>LoopFormer baseline: 0.87 BPB vs our matrix thinker: 1.67 BPB. Speed gains don't translate to quality. The operations are fundamentally more expensive.</p>
+            </div>
+            <div class="negative">
+                <h4>Thought Interleaving Loses to Adding Layers</h4>
+                <p>E baseline (48 layers, no thoughts): 3.524 BPB. A with thoughts: 3.535 BPB. At 288K params, simply adding depth beats iterative refinement.</p>
+            </div>
+            <div class="negative">
+                <h4>3D Matrix Attention is Dead</h4>
+                <p>3D attention is slower AND worse. Drives solidification (rank drops), BPB 2.457 — 29% worse than Frobenius attention. Confirmed dead end.</p>
+            </div>
+            <div class="negative">
+                <h4>PonderNet Halting Collapses at Small Scale</h4>
+                <p>Adaptive halting mechanisms fail below 10M params. Expected steps collapse to 1.0. Requires fixed-iteration baseline.</p>
+            </div>
+            <div class="negative">
+                <h4>Scale Limitations of Current Results</h4>
+                <p>At 288K params, models barely learn unigram statistics. Cannot draw conclusions about reasoning, generalization, or abstract thought. Requires 10M+ minimum.</p>
+            </div>
+            <div class="negative">
+                <h4>Critical Open Question: Structure vs Embedding</h4>
+                <p>The outer-product embedding could theoretically be flattened to vectors. Does the MATRIX STRUCTURE help, or just the embedding? This blocks all downstream decisions.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="roadmap">
+    <div class="container">
+        <h2>Compute Plan</h2>
+        <p>Four-phase approach to resolve the core question: does matrix structure matter at scale, or is the advantage purely from the embedding?</p>
+
+        <div class="card-grid">
+            <div class="card">
+                <h3>Phase 1: Embedding Ablation</h3>
+                <p>Three-way param-matched comparison (standard vs bottleneck vs outer-product) at 2.5M and 10M params. Determines whether the structure or just the embedding creates the advantage. Approximately 10 H100-hours.</p>
+            </div>
+            <div class="card">
+                <h3>Phase 2: Thought Scaling</h3>
+                <p>CoCoMix-style thought interleaving at 10-50M params. Measure whether matrix thoughts provide advantages over vector thoughts at publication-grade scale. Approximately 20 H100-hours.</p>
+            </div>
+            <div class="card">
+                <h3>Phase 3: Cross-Domain Learning</h3>
+                <p>Mixed byte data (text + images + code + audio) as raw bytes. Measure transfer coefficients. Test whether matrix rank correlates with cross-domain generalization. Approximately 30 H100-hours.</p>
+            </div>
+            <div class="card">
+                <h3>Phase 4: Publication Benchmarks</h3>
+                <p>Standard benchmarks (WikiText-103, The Pile) with honest comparison against EvaByte, BLT, MBLM, LoopFormer at matched scale. Approximately 100 H100-hours.</p>
+            </div>
+        </div>
+
+        <p style="margin-top: 32px; color: var(--muted);"><strong>Total compute needed:</strong> ~160 H100-hours (~$400-800 at cloud rates). Either outcome (matrix helps or doesn't) is publishable and valuable.</p>
+    </div>
+</section>
+
+<section id="team">
+    <div class="container">
+        <h2>Team</h2>
+        <div class="team-member">
+            <div class="avatar">SL</div>
+            <div>
+                <h3 style="color: var(--text);">Sam Larson</h3>
+                <p>Founder & CEO of Pebble AI (Nevada S-Corp). Independent ML researcher focused on novel neural architectures. 26 experiments completed on H100 infrastructure with rigorous methodology: hypothesis-driven design, comprehensive ablations, and honest assessment of negative results. Sam is applying to GPU credit programs (NVIDIA Inception, Microsoft for Startups, Google Cloud, Modal, AWS, Lambda) to fund Phase 1-4 research.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <p>&copy; 2026 Pebble AI Inc. Nevada &middot; <a href="mailto:sam@pebbleml.com">sam@pebbleml.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>

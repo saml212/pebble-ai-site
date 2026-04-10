@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Per-layer parameter efficiency of matrix-native projections — at d=16 a RowThenCol bilinear projection uses 128x fewer parameters than the flattened Linear equivalent.">
+<meta property="og:title" content="Per-layer parameter efficiency of matrix projections — pebble">
+<meta property="og:description" content="Research note: at d=16 a matrix-native projection uses 128x fewer parameters per layer than the flattened Linear equivalent, at a per-step FLOP cost we describe honestly.">
+<meta property="og:type" content="article">
+<link rel="icon" type="image/svg+xml" href="../assets/pebble.svg">
+<title>Per-layer parameter efficiency of matrix projections — pebble</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #FAF5E7;
+    --text: #1a1a1a;
+    --muted: #5a5a5a;
+    --accent: #8B2E1F;
+    --line: #1a1a1a;
+    --code-bg: #f0e9d3;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.68;
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.mono, code, pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.86em;
+}
+
+a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+a:hover { text-decoration-thickness: 2px; }
+
+.container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 32px;
+}
+
+.sans {
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+/* ────── header ────── */
+header.paper {
+    border-bottom: 1px solid var(--line);
+    padding: 22px 0;
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+header.paper .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 860px;
+}
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: -0.02em;
+}
+header.paper nav a {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.85rem;
+    margin-left: 22px;
+    font-weight: 500;
+}
+header.paper nav a:hover { color: var(--accent); }
+
+/* ────── title block ────── */
+.title-block {
+    padding: 80px 0 60px;
+    border-bottom: 1px solid var(--line);
+}
+.paper-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    margin-bottom: 24px;
+    font-weight: 700;
+}
+h1.paper-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.028em;
+    margin-bottom: 24px;
+}
+.authors {
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+.authors .author {
+    font-weight: 600;
+}
+.affil {
+    color: var(--muted);
+    font-size: 0.92rem;
+    margin-bottom: 10px;
+}
+.date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* ────── body ────── */
+article { padding: 50px 0 40px; }
+
+.abstract {
+    border: 1px solid var(--line);
+    padding: 28px 32px;
+    margin-bottom: 48px;
+    background: var(--bg);
+    position: relative;
+}
+.abstract::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px; right: -1px;
+    height: 3px;
+    background: var(--accent);
+}
+.abstract .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: block;
+}
+.abstract p { margin: 0; font-size: 1rem; line-height: 1.65; }
+
+article h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin: 56px 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+}
+article h2 .num {
+    color: var(--accent);
+    margin-right: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9em;
+}
+article h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 36px 0 14px;
+}
+article p {
+    margin-bottom: 18px;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+article ul, article ol {
+    margin: 0 0 20px 24px;
+    padding: 0;
+}
+article li {
+    margin-bottom: 10px;
+    line-height: 1.65;
+}
+article ul { list-style: none; }
+article ul li { padding-left: 18px; position: relative; }
+article ul li::before {
+    content: '▪';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+}
+
+/* ────── code blocks ────── */
+pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    padding: 18px 22px;
+    margin: 24px 0;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+code {
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border: 1px solid var(--line);
+    font-size: 0.85em;
+}
+pre code {
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+/* ────── figures and tables ────── */
+figure {
+    margin: 32px 0;
+    border: 1px solid var(--line);
+    padding: 24px;
+    background: var(--bg);
+}
+figcaption {
+    font-size: 0.86rem;
+    color: var(--muted);
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--line);
+    font-family: 'Space Grotesk', sans-serif;
+    line-height: 1.55;
+}
+figcaption .fig-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-right: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.94rem;
+}
+th, td {
+    border: 1px solid var(--line);
+    padding: 12px 16px;
+    text-align: left;
+}
+th {
+    background: var(--code-bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+}
+td .num { font-family: 'JetBrains Mono', monospace; font-size: 0.94em; }
+
+/* ────── ascii plot ────── */
+.ascii-plot {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    padding: 24px 32px;
+    margin: 24px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.35;
+    overflow-x: auto;
+    white-space: pre;
+}
+
+/* ────── callouts ────── */
+.takeaway {
+    border-left: 4px solid var(--accent);
+    padding: 14px 0 14px 24px;
+    margin: 28px 0;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+.takeaway .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* ────── references ────── */
+.references {
+    margin-top: 56px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+}
+.references h2 {
+    border: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+.references ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: ref;
+}
+.references li {
+    counter-increment: ref;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin-bottom: 14px;
+    padding-left: 44px;
+    position: relative;
+}
+.references li::before {
+    content: '[' counter(ref) ']';
+    position: absolute;
+    left: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+/* ────── footer ────── */
+footer {
+    padding: 60px 0 64px;
+    border-top: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 80px;
+}
+footer .container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    max-width: 860px;
+}
+footer a { color: var(--accent); }
+
+/* ────── responsive ────── */
+@media (max-width: 720px) {
+    body { font-size: 17px; }
+    .container { padding: 0 24px; }
+    .title-block { padding: 56px 0 44px; }
+    h1.paper-title { font-size: 1.8rem; }
+    article h2 { font-size: 1.35rem; }
+    .abstract { padding: 24px; }
+    .ascii-plot { font-size: 0.68rem; padding: 18px 20px; }
+    header.paper nav a { margin-left: 12px; font-size: 0.78rem; }
+    header.paper .container { flex-wrap: wrap; gap: 10px; }
+}
+</style>
+</head>
+<body>
+
+<header class="paper">
+    <div class="container">
+        <a href="../index.html" class="logo">
+            <svg width="19" height="24" viewBox="0 0 189.19 244.18" aria-hidden="true">
+                <path fill="#8B2E1F" d="M154.14,12.56C111.33-20.28,21.86,11.88,3.07,101.86c-17.52,83.86,42.97,164.41,108.14,136.78,68.89-29.2,112.08-173.04,42.94-226.08ZM103.14,218.13C49.43,240.91-.41,174.53,14.03,105.43,29.52,31.28,103.24,4.78,138.52,31.84c56.99,43.71,21.39,162.22-35.38,186.29Z"/>
+            </svg>
+            pebble
+        </a>
+        <nav>
+            <a href="../index.html">← home</a>
+            <a href="../index.html#findings">findings</a>
+            <a href="../index.html#roadmap">roadmap</a>
+            <a href="mailto:sam@pebbleml.com">contact</a>
+        </nav>
+    </div>
+</header>
+
+<section class="title-block">
+    <div class="container">
+        <div class="paper-meta">research note &nbsp;·&nbsp; finding 04 of 05</div>
+        <h1 class="paper-title">Per-layer parameter efficiency of matrix projections</h1>
+        <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 18px;">structural observation · one matrix dimension tested</p>
+        <p class="authors"><span class="author">Sam Larson</span></p>
+        <p class="affil">pebble, San Francisco</p>
+        <p class="date">April 2026 &nbsp;·&nbsp; sam@pebbleml.com</p>
+    </div>
+</section>
+
+<article>
+    <div class="container">
+
+        <div class="abstract">
+            <span class="label">abstract</span>
+            <p>At matrix dimension <span class="mono">d = 16</span>, a RowThenCol bilinear projection — <span class="mono">silu(A · M) · B</span> with <span class="mono">A, B ∈ ℝ<sup>d×d</sup></span> — uses <span class="mono">2·d² = 512</span> parameters. The flattened equivalent — reshape <span class="mono">M</span> to a <span class="mono">d²</span>-dim vector and apply a <span class="mono">d² × d²</span> Linear layer — uses <span class="mono">d⁴ = 65,536</span> parameters. The ratio is <span class="mono">128×</span>. The same structural argument gives 32× at Kronecker <span class="mono">K = 4</span> and 16× at Kronecker <span class="mono">K = 8</span>. This is a per-layer claim at one matrix dimension. It is not a claim that matrix operations are better at matched compute: the RowThenCol projection is <span class="mono">O(d³)</span> per step while the flattened Linear is <span class="mono">O(d⁴)</span> only because the layer carries <span class="mono">d⁴</span> parameters, and the per-parameter efficiency comes at a per-step FLOP constant we expect memory bandwidth and kernel launch overhead to eat much of on an H100; we have not measured the realized speedup (see Limitations). The allocation consequence at our scale is that in an 8-layer Matrix Thinker at <span class="mono">d = 32</span> the 8 thinking layers occupy ~4% of the parameter budget while embeddings and output head occupy the rest; at byte-level <span class="mono">d = 16</span> (Run 19, 218K total parameters) the thinking layers expand to ~33% of the budget as the embedding table shrinks. The structural efficiency is useful where parameters are scarce and compute is not the binding constraint.</p>
+        </div>
+
+        <h2><span class="num">01</span>Background</h2>
+
+        <p>Per-layer parameter efficiency has a long history in structured linear algebra. Tensor decompositions cut parameters by factoring a weight tensor into a product of smaller tensors. Low-rank adaptation approaches restrict gradient updates to a rank-<span class="mono">r</span> subspace of a full weight matrix. Block-diagonal and other structured matrix families cut parameters by imposing structural sparsity. Parameterized Hypercomplex Multiplication (PHM) from Zhang et al. 2021 <a href="#ref-phm">[3]</a> expresses a linear layer as a sum of Kronecker products and reduces parameters by a factor of <span class="mono">n</span> at cost of an <span class="mono">n</span>-way Kronecker sum. Bilinear pooling from the fine-grained visual recognition literature uses outer products to produce second-order features with far fewer parameters than the full quadratic expansion would need.</p>
+
+        <p>The common structure across these methods is that a linear map from <span class="mono">ℝ<sup>m</sup></span> to <span class="mono">ℝ<sup>n</sup></span> that would cost <span class="mono">m · n</span> parameters is replaced with a factored form whose parameter count scales sub-linearly in <span class="mono">m · n</span>. The catch is that the factoring constrains the map: not every <span class="mono">m × n</span> matrix can be represented as a low-rank product or a sum of Kronecker terms, so there is a capacity ceiling the full dense layer does not have. The useful regime is the one where the constrained class is expressive enough for the task and the parameter budget is the binding constraint.</p>
+
+        <p>Matrix-valued token representations change the unit of computation from a <span class="mono">d</span>-dim vector to a <span class="mono">d × d</span> matrix. The natural "linear layer" in this setting is a map from one <span class="mono">d × d</span> matrix to another. If the matrix is immediately flattened, the layer becomes a standard <span class="mono">d² × d²</span> dense Linear with <span class="mono">d⁴</span> parameters. If the matrix is kept as a matrix and the layer is built from left- and right-multiplications, the layer uses two <span class="mono">d × d</span> parameter tensors for <span class="mono">2 · d²</span> total parameters per projection. The two are not interchangeable maps — the second is a constrained subspace of the first — but the second is what the rest of the Matrix Thinker stack is already wired to consume through row-wise and column-wise attention, RowThenCol projections, and bilinear output heads. The question this note addresses is how large the per-layer parameter gap is and what the allocation consequence looks like when the gap is applied to an 8-layer stack.</p>
+
+        <h2><span class="num">02</span>Setup</h2>
+
+        <p>Parameter and FLOP counts in this note come from two internal project research notes (<span class="mono">research/matrix-native-projections.md</span> and <span class="mono">research/matrix-native-operations-code.md</span>); these are internal project research notes, not external peer-reviewed sources. FLOP counts in this note use the 2-FLOP-per-fused-multiply-add convention from <span class="mono">research/matrix-native-projections.md</span>; the alternative 1-FLOP-per-FMA convention (used in <span class="mono">research/matrix-native-operations-code.md</span>) gives half the absolute numbers but preserves the 8× ratio.</p>
+
+        <h3>The two projections</h3>
+
+        <p>We compare two ways to realize a learned map from a <span class="mono">d × d</span> input matrix <span class="mono">M</span> to a <span class="mono">d × d</span> output matrix, at <span class="mono">d = 16</span>:</p>
+
+        <ul>
+            <li><strong>Flattened Linear.</strong> Reshape <span class="mono">M</span> to a <span class="mono">d²</span>-dim vector, apply a dense Linear of shape <span class="mono">(d², d²)</span>, reshape back. Parameter count: <span class="mono">d² · d² = d⁴ = 65,536</span>. This is the map that can realize any linear function from <span class="mono">ℝ<sup>d²</sup></span> to <span class="mono">ℝ<sup>d²</sup></span>. It is also what a standard transformer's <span class="mono">(d_model, d_model)</span> Linear layer becomes if we take <span class="mono">d_model = d²</span> and treat the <span class="mono">d²</span>-dim vector as a flattened matrix.</li>
+            <li><strong>RowThenCol bilinear.</strong> Keep <span class="mono">M</span> as a matrix. Apply two learned <span class="mono">d × d</span> parameters <span class="mono">A</span> and <span class="mono">B</span>:
+                <pre><code>M_out = silu(A @ M) @ B</code></pre>
+                <span class="mono">A @ M</span> is a learned row mixing (each column of the output is a learned linear combination of the columns of <span class="mono">M</span>, via the row weights of <span class="mono">A</span>). <span class="mono">silu</span> is applied pointwise. <span class="mono">(silu(A @ M)) @ B</span> is a learned column mixing. The composition is a nonlinear sandwich with parameter count <span class="mono">2 · d² = 512</span>. This is the projection we use for Q, K, V, output, and the data-dependent <span class="mono">Δ</span> and <span class="mono">Γ</span> inside the multiplicative thinking layer. Source: <span class="mono">matrix-thinking/src/matrix_thinker.py</span>, class <span class="mono">RowThenColProjection</span>.</li>
+        </ul>
+
+        <p>For completeness we also include two Kronecker variants from the project's earlier research on matrix-native projections:</p>
+
+        <ul>
+            <li><strong>Kronecker K=4.</strong> <span class="mono">M_out = Σ<sub>k=1..4</sub> A<sub>k</sub> · M · B<sub>k</sub></span>. Four sum terms, two matrices per term (<span class="mono">A<sub>k</sub></span>, <span class="mono">B<sub>k</sub></span>), <span class="mono">d²</span> params per matrix: <span class="mono">2·K·d² = 2·4·256 = 2,048</span>. Source: <a href="#ref-mnop">[1]</a>.</li>
+            <li><strong>Kronecker K=8.</strong> Same form with eight terms: <span class="mono">2·K·d² = 2·8·256 = 4,096</span> at <span class="mono">d = 16</span>.</li>
+        </ul>
+
+        <h3>Parameter counts</h3>
+
+        <p>The four numbers are fixed by the projection form and the matrix dimension. They are not run-dependent:</p>
+
+        <figure>
+            <table>
+                <thead>
+                    <tr>
+                        <th>projection</th>
+                        <th>form</th>
+                        <th>params at d=16</th>
+                        <th>vs flattened</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Flattened Linear</td>
+                        <td><span class="mono">d² × d²</span> dense</td>
+                        <td><span class="num">65,536</span></td>
+                        <td><span class="num">1.0×</span></td>
+                    </tr>
+                    <tr>
+                        <td>Kronecker K=8</td>
+                        <td><span class="mono">Σ<sub>k=1..8</sub> A<sub>k</sub> · M · B<sub>k</sub></span></td>
+                        <td><span class="num">4,096</span></td>
+                        <td><span class="num">16×</span> fewer</td>
+                    </tr>
+                    <tr>
+                        <td>Kronecker K=4</td>
+                        <td><span class="mono">Σ<sub>k=1..4</sub> A<sub>k</sub> · M · B<sub>k</sub></span></td>
+                        <td><span class="num">2,048</span></td>
+                        <td><span class="num">32×</span> fewer</td>
+                    </tr>
+                    <tr>
+                        <td>RowThenCol bilinear</td>
+                        <td><span class="mono">silu(A · M) · B</span></td>
+                        <td><span class="num">512</span></td>
+                        <td><span class="num">128×</span> fewer</td>
+                    </tr>
+                </tbody>
+            </table>
+            <figcaption><span class="fig-label">fig 1</span>Parameter count per projection at <span class="mono">d = 16</span> for four projection families. Counts from <span class="mono">research/matrix-native-projections.md</span> and <span class="mono">research/matrix-native-operations-code.md</span>. The "vs flattened" column is <span class="mono">65,536 / params</span>. The headline ratio for RowThenCol is <span class="mono">128×</span>.</figcaption>
+        </figure>
+
+        <h3>Per-step FLOPs, so nothing is hidden</h3>
+
+        <p>The parameter efficiency does not come for free. At <span class="mono">d = 16</span> the per-step FLOP counts for the same four projections are:</p>
+
+        <figure>
+            <table>
+                <thead>
+                    <tr>
+                        <th>projection</th>
+                        <th>params</th>
+                        <th>flops (fwd)</th>
+                        <th>flops / param</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Flattened Linear</td>
+                        <td><span class="num">65,536</span></td>
+                        <td><span class="num">131,072</span></td>
+                        <td><span class="num">2</span></td>
+                    </tr>
+                    <tr>
+                        <td>Kronecker K=8</td>
+                        <td><span class="num">4,096</span></td>
+                        <td><span class="num">131,072</span></td>
+                        <td><span class="num">32</span></td>
+                    </tr>
+                    <tr>
+                        <td>Kronecker K=4</td>
+                        <td><span class="num">2,048</span></td>
+                        <td><span class="num">65,536</span></td>
+                        <td><span class="num">32</span></td>
+                    </tr>
+                    <tr>
+                        <td>RowThenCol bilinear</td>
+                        <td><span class="num">512</span></td>
+                        <td><span class="num">16,384</span></td>
+                        <td><span class="num">32</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <figcaption><span class="fig-label">fig 2</span>FLOPs per projection per token at <span class="mono">d = 16</span>. Counts from <span class="mono">research/matrix-native-projections.md</span>. A flattened Linear has FLOPs ≈ <span class="mono">2 × params</span> (one multiply-add per parameter per token). Matrix-native projections apply each parameter <span class="mono">O(d)</span> times in the inner loop, so FLOPs / param rises from 2 to 32 at <span class="mono">d = 16</span>. The RowThenCol bilinear uses 8× fewer FLOPs than the flattened Linear per step, but that is a weaker speedup than the 128× parameter gap would suggest.</figcaption>
+        </figure>
+
+        <p>The "FLOPs per parameter" column is the important one to read. A flattened Linear spends each parameter once per token per step: two multiply-adds per scalar weight. A matrix-native projection uses each scalar parameter <span class="mono">d</span> times during the sandwich computation, because <span class="mono">A · M</span> is an inner product against every column of <span class="mono">M</span>. At <span class="mono">d = 16</span> that is a 16× reuse factor, which cancels one factor of 16 from the 128× parameter gap. The other factor of 16 survives as a genuine per-step FLOP reduction. RowThenCol at <span class="mono">d = 16</span> therefore costs 8× fewer FLOPs per step, not 128× fewer FLOPs per step. The parameter efficiency and the compute efficiency are the same sign but different magnitudes, and the compute efficiency is the smaller of the two.</p>
+
+        <h2><span class="num">03</span>Results</h2>
+
+        <p>The parameter gap at <span class="mono">d = 16</span> is <span class="mono">128×</span> between the RowThenCol bilinear projection and the flattened Linear equivalent. A bar chart on log scale makes the four families visible on one axis:</p>
+
+        <figure>
+            <img src="../assets/plots/parameter_efficiency.svg" alt="parameter count per projection at d=16 for four projection families, log scale" style="width: 100%; max-width: 680px; display: block; margin: 0 auto;">
+            <figcaption><span class="fig-label">fig 3</span>Parameters per projection at <span class="mono">d = 16</span>, log scale, for four projection families. Flattened Linear at <span class="mono">65,536</span>, Kronecker K=8 at <span class="mono">4,096</span>, Kronecker K=4 at <span class="mono">2,048</span>, RowThenCol bilinear at <span class="mono">512</span>. The ratio between the extremes is <span class="mono">128×</span>. Counts from <span class="mono">research/matrix-native-projections.md</span> and <span class="mono">research/matrix-native-operations-code.md</span> (parameters only — per-step FLOPs gap at <span class="mono">d = 16</span> is 8×, see fig 2).</figcaption>
+        </figure>
+
+        <h3>Parameter allocation at the whole-model level</h3>
+
+        <p>The per-layer efficiency compounds across the 8 thinking layers in a Matrix Thinker backbone. At <span class="mono">d = 32</span> with a 50K vocab BPE tokenizer, the parameter budget breaks down roughly as:</p>
+
+        <figure>
+            <table>
+                <thead>
+                    <tr>
+                        <th>component</th>
+                        <th>params (mat_dim=32, BPE vocab)</th>
+                        <th>share</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Embedding tables (outer-product, <span class="mono">2 · V · d</span>)</td>
+                        <td><span class="num">~3.2M</span></td>
+                        <td><span class="num">~63%</span></td>
+                    </tr>
+                    <tr>
+                        <td>8 thinking layers (attention + multiplicative)</td>
+                        <td><span class="num">~0.2M</span></td>
+                        <td><span class="num">~4%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Output head (MultiProbeHead, K=32)</td>
+                        <td><span class="num">~1.6M</span></td>
+                        <td><span class="num">~31%</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <figcaption><span class="fig-label">fig 4</span>Parameter allocation in an 8-layer Matrix Thinker at <span class="mono">d = 32</span> with a ~50K BPE vocabulary. Breakdown from <span class="mono">matrix-thinking/H100_SETUP.md</span>. The 8 thinking layers are ~4% of the total parameter budget. Embeddings and output head dominate because the per-layer cost is <span class="mono">O(d²)</span> while the embedding tables scale with vocab size.</figcaption>
+        </figure>
+
+        <p>At byte-level <span class="mono">d = 16</span> the embedding table shrinks by a factor of <span class="mono">~100</span> (from <span class="mono">2 · 50{,}257 · 32</span> to <span class="mono">2 · 256 · 16</span>, or about <span class="mono">8</span>K parameters), and the thinking layers claim a much larger share of the total:</p>
+
+        <figure>
+            <table>
+                <thead>
+                    <tr>
+                        <th>run</th>
+                        <th>total params</th>
+                        <th>thinking-layer share</th>
+                        <th>notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Run 12 (d=32, 50K BPE)</td>
+                        <td><span class="num">5.16M</span></td>
+                        <td><span class="num">~4%</span></td>
+                        <td>8 layers; 2.19B OpenR1-Math tokens</td>
+                    </tr>
+                    <tr>
+                        <td>Run 19 (d=16, byte-level)</td>
+                        <td><span class="num">218K</span></td>
+                        <td><span class="num">~33%</span></td>
+                        <td>12 layers; 539M bytes</td>
+                    </tr>
+                </tbody>
+            </table>
+            <figcaption><span class="fig-label">fig 5</span>Two parameter allocations at different scales. Run 12 is the Round 2 Matrix Thinker reported in <a href="rank-enrichment.html">finding 01</a>. Run 19 is the byte-level Matrix Thinker described in <span class="mono">EXPERIMENT_LOG.md</span>. The thinking-layer share rises from ~4% to ~33% as the vocabulary shrinks from 50K BPE to 256 bytes, because the per-layer cost is independent of vocab and the embedding cost scales with vocab.</figcaption>
+        </figure>
+
+        <div class="takeaway">
+            <span class="label">key observation</span>
+            A RowThenCol bilinear projection uses <span class="mono">2 · d²</span> parameters, and the flattened Linear equivalent uses <span class="mono">d⁴</span>. At <span class="mono">d = 16</span> the ratio is <span class="mono">128×</span>. The per-step FLOP gap is <span class="mono">8×</span> at the same dimension, not 128×, because each matrix-native parameter is used <span class="mono">d</span> times per application. The efficiency is structural at the parameter level and partially realized at the compute level.
+        </div>
+
+        <h2><span class="num">04</span>Discussion</h2>
+
+        <p>What this unlocks at small scale is that the thinking backbone can be cheap enough to disappear from the parameter budget entirely when the embedding table is large. At <span class="mono">d = 32</span> with a 50K BPE vocab, the 8 thinking layers of a Matrix Thinker cost <span class="mono">~0.2M</span> parameters out of <span class="mono">~5.16M</span> total. Adding a ninth thinking layer costs <span class="mono">~25K</span> parameters: a 0.5% increase in the total model size. The iterative-refinement loop in the Matrix Thinker further reuses the same thinking layers <span class="mono">T = 8</span> times per forward pass, which amortizes the per-layer parameter cost across 8 applications for free — an iterated backbone at <span class="mono">d = 32</span> with 8 shared layers effectively has 64 layer-applications at the cost of 8 layers' worth of parameters. The per-layer parameter gap is what makes that reuse pattern feasible without growing the model into the hundreds of millions of parameters.</p>
+
+        <p>The byte-level regime is where the gap starts to bind directly. At byte vocabulary of 256, the embedding table stops dominating, and the per-layer budget for the backbone is the binding constraint on how deep a model can be at a given total parameter count. Run 19 is a 218K-parameter byte-level model with 12 thinking layers, and the thinking layers are 33% of the model — a share that would be impossible with a flattened-Linear per-layer cost of <span class="mono">d⁴ = 65,536</span> parameters per layer per projection. A 12-layer flattened-Linear backbone at <span class="mono">d = 16</span> with four projections per layer would cost <span class="mono">12 · 4 · 65{,}536 ≈ 3.1M</span> parameters for the backbone alone, fifteen times the total Run 19 model. The efficiency is what makes byte-level matrix thinking feasible at under 1M total parameters.</p>
+
+        <p>The counterpoint is that none of this argues matrix operations are better at matched compute. The per-step FLOP gap at <span class="mono">d = 16</span> is <span class="mono">8×</span>, and we expect memory bandwidth and kernel launch overhead to eat much of that on an H100; we have not measured the realized speedup (see Limitations). At matched FLOPs, the matrix approach loses by a large margin (<span class="mono">EXPERIMENT_LOG.md</span> Run 14: Matrix Thinker BPB 1.67 vs LoopFormer BPB 0.87 at the same 653K TFLOPs budget). The sibling notes on <a href="output-head-dynamics.html">output head dynamics</a> and <a href="outer-product-embedding.html">the outer-product embedding</a> describe where matrix operations hold up against vector baselines and where they do not. The honest statement is that matrix operations are a parameter-efficient way to express transformations on structured representations. They are useful where parameters are the scarce resource and compute is not, such as small models trained at modest scale, byte-level vocabularies, and deployment environments with a tight memory budget but ample FLOPs per parameter.</p>
+
+        <p>A related point about depth. If the parameter gap per layer is <span class="mono">128×</span>, then at a fixed total parameter budget a matrix-thinking backbone can afford to be roughly <span class="mono">128×</span> deeper than a flattened-Linear backbone at the same <span class="mono">d</span>. At small scale this is the trade that opens up: more layers or more iterative-refinement steps at matched total parameters. Whether the extra depth translates into downstream quality is a separate question — one the "just add layers" lesson in <span class="mono">CLAUDE.md</span> warns us about — and the parameter efficiency result does not settle it.</p>
+
+        <h2><span class="num">05</span>Limitations</h2>
+
+        <ul>
+            <li><strong>One matrix dimension tested.</strong> All numbers in this note are at <span class="mono">d = 16</span>. The parameter ratio scales as <span class="mono">d⁴ / (2 · d²) = d² / 2</span>, so at <span class="mono">d = 32</span> the ratio would be <span class="mono">512×</span> and at <span class="mono">d = 8</span> it would be <span class="mono">32×</span>. The <span class="mono">128×</span> headline is specific to <span class="mono">d = 16</span>. We report it at that dimension because that is where we have the matching FLOP count from the project's earlier matrix-native-projections research. The general statement is <span class="mono">d² / 2</span>.</li>
+            <li><strong>Per-step FLOP savings do not fully materialize on H100.</strong> The theoretical FLOP gap at <span class="mono">d = 16</span> is <span class="mono">8×</span>, but in practice the RowThenCol projection is memory-bandwidth bound rather than compute-bound, and kernel launch overhead for the small per-layer tensors eats most of the savings. We have not measured the exact realized speedup. A <span class="mono">torch.compile</span>-based fused kernel for the sandwich operation is a natural follow-up that might close the gap between theoretical and realized FLOP savings.</li>
+            <li><strong>Capacity ceiling.</strong> A RowThenCol projection is a constrained subspace of the flattened Linear. Not every <span class="mono">d² × d²</span> linear map can be written as a sandwich with <span class="mono">silu</span> in the middle. The unsaturated sandwich <span class="mono">A · M · B</span> is equivalent to the linear map <span class="mono">(Bᵀ ⊗ A) · vec(M)</span>, a Kronecker-structured linear operator living in a <span class="mono">d²</span>-parameter subspace of the full <span class="mono">d⁴</span>-parameter Linear space. The SiLU nonlinearity between <span class="mono">A · M</span> and the right multiplication by <span class="mono">B</span> is what breaks the pure-linear structure and lets the composition approximate a larger function class; we have not quantified how close the saturated version gets to the full Linear. The parameter efficiency comes at an expressivity cost that the numbers in this note do not quantify. Whether the constrained subspace is sufficient for language modeling at scale is what the downstream experiments in the sibling notes attempt to measure, and the current evidence is mixed: RowThenCol backbones lose to flat-vector baselines at matched FLOPs but win at the embedding layer under specific output-head conditions.</li>
+            <li><strong>Parameter counts assume the thinking layers are shared across iterations.</strong> The <span class="mono">~4%</span> thinking-layer share at <span class="mono">d = 32</span> is for 8 thinking layers applied <span class="mono">T = 8</span> times with weight sharing, which is how the Matrix Thinker uses them. An unshared 8-layer backbone would double the thinking-layer share; a shared backbone with <span class="mono">T = 16</span> iterations would keep it at 4%. The allocation number is specific to the Matrix Thinker architecture and should not be read as a general statement about 8-layer transformers.</li>
+            <li><strong>Single-seed downstream claims.</strong> The allocation numbers cited from Run 12 and Run 19 come from single training runs (<span class="mono">n = 1</span> each). The parameter counts themselves are deterministic functions of the architecture hyperparameters and do not depend on the seed, but the comparative framing in <em>Discussion</em> that appeals to Run 14 and the sibling notes rests on single-seed downstream evidence. We inherit the single-seed caveat from those notes.</li>
+        </ul>
+
+        <h2><span class="num">06</span>Future work</h2>
+
+        <p>Three tests that would strengthen or qualify this result:</p>
+
+        <ol>
+            <li><strong>Matched-capacity comparison against structured-linear baselines.</strong> The current comparison is RowThenCol bilinear vs fully flattened Linear. The more honest baseline is a matched-capacity structured linear layer — a block-diagonal or other structured matrix family, low-rank bottlenecks of rank <span class="mono">r</span> with <span class="mono">r · d²</span> parameters, or PHM with <span class="mono">n = 4</span>. If RowThenCol beats those at matched parameters on a downstream metric, the structural case is stronger. If it loses, the "<span class="mono">128×</span> fewer than flattened Linear" framing overstates the practical efficiency gain.</li>
+            <li><strong>Compile-time optimization of the matrix sandwich.</strong> The per-step FLOP savings at <span class="mono">d = 16</span> are <span class="mono">8×</span> in theory but much smaller in practice. A fused kernel for <span class="mono">silu(A · M) · B</span> that holds <span class="mono">A</span> and <span class="mono">B</span> in registers and streams <span class="mono">M</span> through would close the gap between the theoretical and realized speedup. <span class="mono">torch.compile</span> with <span class="mono">fullgraph=True</span> and fixed shapes is the cheapest way to try this, and the H100 setup already supports it.</li>
+            <li><strong>Scale sweep on <span class="mono">d</span>.</strong> The parameter ratio is <span class="mono">d² / 2</span>, which grows quadratically with the matrix dimension. At <span class="mono">d = 64</span> the ratio is <span class="mono">2048×</span> per layer. At small <span class="mono">d</span> the parameter savings might be outweighed by the expressivity cost of the constrained subspace; at large <span class="mono">d</span> the savings dominate. Running the same comparison across <span class="mono">d ∈ {8, 16, 32, 64}</span> with the downstream task held fixed would tell us where the trade flips.</li>
+        </ol>
+
+        <h2><span class="num">07</span>Reproducibility</h2>
+
+        <p>The RowThenCol projection module lives at <span class="mono">matrix-thinking/src/matrix_thinker.py</span>, class <span class="mono">RowThenColProjection</span> (lines 39–49):</p>
+        <pre><code>class RowThenColProjection(nn.Module):
+    """silu(A @ M) @ B — nonlinearity between left and right multiply."""
+    def __init__(self, d):
+        super().__init__()
+        self.A = nn.Parameter(torch.eye(d) + 0.02 * torch.randn(d, d))
+        self.B = nn.Parameter(torch.eye(d) + 0.02 * torch.randn(d, d))
+
+    def forward(self, M):
+        return torch.einsum('bsij,jk->bsik',
+                            F.silu(torch.einsum('ij,bsjk->bsik', self.A, M)),
+                            self.B)</code></pre>
+
+        <p>Two <span class="mono">d × d</span> parameter tensors, <span class="mono">2 · d² = 512</span> trainable scalars at <span class="mono">d = 16</span>. A standard <span class="mono">nn.Linear(256, 256)</span> for comparison has <span class="mono">256 · 256 = 65{,}536</span> weight parameters (ignoring bias), giving the <span class="mono">128×</span> ratio.</p>
+
+        <p>Source files for the parameter and FLOP counts used in this note:</p>
+
+        <ul>
+            <li><span class="mono">research/matrix-native-projections.md</span>: parameter and FLOP table at <span class="mono">d = 16</span> for Flatten→Linear, Bilinear K=1, Kronecker K=4, Kronecker K=8. Internal project research note, not an external peer-reviewed source.</li>
+            <li><span class="mono">research/matrix-native-operations-code.md</span>: extended parameter/FLOPs table including Householder and multi-head bilinear variants. Internal project research note, not an external peer-reviewed source.</li>
+            <li><span class="mono">matrix-thinking/H100_SETUP.md</span>: parameter allocation at <span class="mono">d = 32</span> in an 8-layer Matrix Thinker — embeddings ~63%, 8 thinking layers ~4%, output head ~31%.</li>
+            <li><span class="mono">EXPERIMENT_LOG.md</span>: Run 14 (FLOPs-matched comparison, Matrix Thinker BPB 1.67 vs LoopFormer BPB 0.87) and Run 19 (byte-level <span class="mono">d = 16</span>, 218K parameters, 12 thinking layers, ~33% thinking-layer share).</li>
+            <li><span class="mono">pebble-ai-site/assets/plots/generate_parameter_efficiency.py</span>: the script that produced the figure in this note. No training involved — the script renders fixed constants from the source files listed above.</li>
+        </ul>
+
+        <div class="references">
+            <h2>References</h2>
+            <ol>
+                <li id="ref-mnop">pebble project (2026). <em>Matrix-native projections — research results.</em> Internal project research note at <span class="mono">research/matrix-native-projections.md</span>, not an external peer-reviewed source. Parameter and FLOP comparison at <span class="mono">d = 16</span>.</li>
+                <li id="ref-mnoc">pebble project (2026). <em>Matrix-native operations — working code and repo findings.</em> Internal project research note at <span class="mono">research/matrix-native-operations-code.md</span>, not an external peer-reviewed source. Extended parameter/FLOPs table.</li>
+                <li id="ref-phm">Zhang, A., Tay, Y., Zhang, S., Chan, A., Luu, A. T., Hui, S. C., & Fu, J. (2021). <em>Beyond Fully-Connected Layers with Quaternions: Parameterizations of Hypercomplex Multiplications (PHM).</em> ICLR 2021. arXiv:2102.08597</li>
+            </ol>
+        </div>
+
+    </div>
+</article>
+
+<footer>
+    <div class="container">
+        <div>© 2026 pebble &nbsp;·&nbsp; <a href="../index.html">home</a> &nbsp;·&nbsp; <a href="../index.html#findings">all findings</a></div>
+        <div><a href="mailto:sam@pebbleml.com">sam@pebbleml.com</a></div>
+    </div>
+</footer>
+
+</body>
+</html>

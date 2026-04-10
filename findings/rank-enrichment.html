@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Rank Enrichment in Matrix-Valued Token Representations — an observation from pebble that effective rank rises during iterative refinement under specific output-head conditions.">
+<meta property="og:title" content="Rank Enrichment in Matrix-Valued Token Representations — pebble">
+<meta property="og:description" content="Research note: under bilinear output heads, effective rank rises during iterative refinement rather than collapsing.">
+<meta property="og:type" content="article">
+<link rel="icon" type="image/svg+xml" href="../assets/pebble.svg">
+<title>Rank Enrichment in Matrix-Valued Token Representations — pebble</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #FAF5E7;
+    --text: #1a1a1a;
+    --muted: #5a5a5a;
+    --accent: #8B2E1F;
+    --line: #1a1a1a;
+    --code-bg: #f0e9d3;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.68;
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.mono, code, pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.86em;
+}
+
+a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+a:hover { text-decoration-thickness: 2px; }
+
+.container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 32px;
+}
+
+.sans {
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+/* ────── header ────── */
+header.paper {
+    border-bottom: 1px solid var(--line);
+    padding: 22px 0;
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+header.paper .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 860px;
+}
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: -0.02em;
+}
+header.paper nav a {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.85rem;
+    margin-left: 22px;
+    font-weight: 500;
+}
+header.paper nav a:hover { color: var(--accent); }
+
+/* ────── title block ────── */
+.title-block {
+    padding: 80px 0 60px;
+    border-bottom: 1px solid var(--line);
+}
+.paper-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    margin-bottom: 24px;
+    font-weight: 700;
+}
+h1.paper-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.028em;
+    margin-bottom: 24px;
+}
+.authors {
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+.authors .author {
+    font-weight: 600;
+}
+.affil {
+    color: var(--muted);
+    font-size: 0.92rem;
+    margin-bottom: 10px;
+}
+.date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* ────── body ────── */
+article { padding: 50px 0 40px; }
+
+.abstract {
+    border: 1px solid var(--line);
+    padding: 28px 32px;
+    margin-bottom: 48px;
+    background: var(--bg);
+    position: relative;
+}
+.abstract::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px; right: -1px;
+    height: 3px;
+    background: var(--accent);
+}
+.abstract .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: block;
+}
+.abstract p { margin: 0; font-size: 1rem; line-height: 1.65; }
+
+article h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin: 56px 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+}
+article h2 .num {
+    color: var(--accent);
+    margin-right: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9em;
+}
+article h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 36px 0 14px;
+}
+article p {
+    margin-bottom: 18px;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+article ul, article ol {
+    margin: 0 0 20px 24px;
+    padding: 0;
+}
+article li {
+    margin-bottom: 10px;
+    line-height: 1.65;
+}
+article ul { list-style: none; }
+article ul li { padding-left: 18px; position: relative; }
+article ul li::before {
+    content: '▪';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+}
+
+/* ────── code blocks ────── */
+pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    padding: 18px 22px;
+    margin: 24px 0;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+code {
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border: 1px solid var(--line);
+    font-size: 0.85em;
+}
+pre code {
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+/* ────── figures and tables ────── */
+figure {
+    margin: 32px 0;
+    border: 1px solid var(--line);
+    padding: 24px;
+    background: var(--bg);
+}
+figcaption {
+    font-size: 0.86rem;
+    color: var(--muted);
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--line);
+    font-family: 'Space Grotesk', sans-serif;
+    line-height: 1.55;
+}
+figcaption .fig-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-right: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.94rem;
+}
+th, td {
+    border: 1px solid var(--line);
+    padding: 12px 16px;
+    text-align: left;
+}
+th {
+    background: var(--code-bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+}
+td .num { font-family: 'JetBrains Mono', monospace; font-size: 0.94em; }
+
+/* ────── ascii plot ────── */
+.ascii-plot {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    padding: 24px 32px;
+    margin: 24px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.35;
+    overflow-x: auto;
+    white-space: pre;
+}
+
+/* ────── callouts ────── */
+.takeaway {
+    border-left: 4px solid var(--accent);
+    padding: 14px 0 14px 24px;
+    margin: 28px 0;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+.takeaway .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* ────── references ────── */
+.references {
+    margin-top: 56px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+}
+.references h2 {
+    border: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+.references ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: ref;
+}
+.references li {
+    counter-increment: ref;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin-bottom: 14px;
+    padding-left: 44px;
+    position: relative;
+}
+.references li::before {
+    content: '[' counter(ref) ']';
+    position: absolute;
+    left: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+/* ────── footer ────── */
+footer {
+    padding: 60px 0 64px;
+    border-top: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 80px;
+}
+footer .container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    max-width: 860px;
+}
+footer a { color: var(--accent); }
+
+/* ────── responsive ────── */
+@media (max-width: 720px) {
+    body { font-size: 17px; }
+    .container { padding: 0 24px; }
+    .title-block { padding: 56px 0 44px; }
+    h1.paper-title { font-size: 1.8rem; }
+    article h2 { font-size: 1.35rem; }
+    .abstract { padding: 24px; }
+    .ascii-plot { font-size: 0.68rem; padding: 18px 20px; }
+    header.paper nav a { margin-left: 12px; font-size: 0.78rem; }
+    header.paper .container { flex-wrap: wrap; gap: 10px; }
+}
+</style>
+</head>
+<body>
+
+<header class="paper">
+    <div class="container">
+        <a href="../index.html" class="logo">
+            <svg width="19" height="24" viewBox="0 0 189.19 244.18" aria-hidden="true">
+                <path fill="#8B2E1F" d="M154.14,12.56C111.33-20.28,21.86,11.88,3.07,101.86c-17.52,83.86,42.97,164.41,108.14,136.78,68.89-29.2,112.08-173.04,42.94-226.08ZM103.14,218.13C49.43,240.91-.41,174.53,14.03,105.43,29.52,31.28,103.24,4.78,138.52,31.84c56.99,43.71,21.39,162.22-35.38,186.29Z"/>
+            </svg>
+            pebble
+        </a>
+        <nav>
+            <a href="../index.html">← home</a>
+            <a href="../index.html#findings">findings</a>
+            <a href="../index.html#roadmap">roadmap</a>
+            <a href="mailto:sam@pebbleml.com">contact</a>
+        </nav>
+    </div>
+</header>
+
+<section class="title-block">
+    <div class="container">
+        <div class="paper-meta">research note &nbsp;·&nbsp; finding 01 of 05</div>
+        <h1 class="paper-title">Rank enrichment in matrix-valued token representations</h1>
+        <p class="authors"><span class="author">Sam Larson</span></p>
+        <p class="affil">pebble, San Francisco</p>
+        <p class="date">April 2026 &nbsp;·&nbsp; sam@pebbleml.com</p>
+    </div>
+</section>
+
+<article>
+    <div class="container">
+
+        <div class="abstract">
+            <span class="label">abstract</span>
+            <p>We report an observation in matrix-valued transformers under iterative refinement. With a bilinear output head (MultiProbeHead), the effective rank of token representations rises monotonically across refinement iterations (<span class="mono">5.02 → 6.12</span> at <span class="mono">d = 32</span>) in a single training run on 2.2B tokens. This runs against the prior literature's assumption that transformer depth drives rank collapse. The observation is output-head-dependent: under a vector-collapse output head the dynamic reverses (rank falls), and under 3D matrix-product attention rank also falls with worse downstream predictions. We have not yet tested the observation under multiple seeds or at larger scale, so we report it as a reproducible single-run finding rather than a general phenomenon. We believe matrix rank is a natural candidate observable for representation complexity during iterative processing, and that a causal test (forced low-rank projection) is the next step to determine whether the rank change drives the quality change or is a correlate of it.</p>
+        </div>
+
+        <h2><span class="num">01</span>Background</h2>
+
+        <p>The prior literature on iterative refinement in transformers has largely framed depth-related dynamics in terms of <em>collapse</em>: token representations converge to a low-rank manifold as they pass through layers, losing the diversity present at initialization. This is the "rank collapse" phenomenon documented in Dong et al. 2021 (<em>Attention is not all you need</em>) and subsequent work that studies how residual connections, MLP blocks, and normalization schemes mitigate the collapse.</p>
+
+        <p>A parallel thread in continuous-reasoning research (COCONUT, CoT2, Reasoning by Superposition) has argued that continuous thought representations hold multiple reasoning paths in superposition. The claim is theoretical and accuracy-based: no prior work measures the structural property the claim describes, because vector representations have no single-point-in-time analog to rank. "How many patterns are active" in a vector has to be estimated across an ensemble of vectors via participation ratio or principal component analysis.</p>
+
+        <p>Matrix-valued token representations let us measure the quantity directly. A matrix of rank <span class="mono">r</span> encodes <span class="mono">r</span> linearly independent rank-1 components, each of which can be interpreted as a distinct stored pattern. The singular value entropy gives a continuous, differentiable proxy for "how many patterns are meaningfully active," computable per token, per iteration, during a single forward pass.</p>
+
+        <p>We report that in matrix-valued iterative refinement, under specific output head conditions, this quantity rises during processing. The opposite of the collapse dynamic described in prior work. We call the observation <strong>rank enrichment</strong>.</p>
+
+        <h2><span class="num">02</span>Setup</h2>
+
+        <h3>Model</h3>
+
+        <p>Matrix Thinker architecture with <span class="mono">d = 32</span>, 8 shared thinking layers, 8 attention heads, Frobenius attention (flash-compatible via SDPA). 5.16M parameters total. Tokens are 32×32 matrices. Iterative refinement applies the same thinking block <span class="mono">T = 8</span> times to every position with gradient checkpointing.</p>
+
+        <p>The thinking block consists of two sub-layers:</p>
+
+        <ul>
+            <li>Matrix Frobenius attention: Q, K, V projected through RowThenCol projections, scalar scores via Frobenius inner product, value aggregation via weighted sum of matrices.</li>
+            <li>Multiplicative thinking layer: <span class="mono">M<sub>new</sub> = (I + Δ) · M · (I + Γ)</span>, where Δ and Γ are data-dependent SwiGLU-activated RowThenCol projections scaled by a learned scalar in <span class="mono">[0.01, 0.5]</span>.</li>
+        </ul>
+
+        <h3>Output head (the variable)</h3>
+
+        <p>We compared three output heads with identical backbones and training data:</p>
+
+        <ul>
+            <li><strong>MultiProbeHead</strong>: K bilinear probes, where the logit for vocab token <em>w</em> is <span class="mono">logit(w) = Linear<sub>w</sub>(Σ<sub>k</sub> u<sub>k</sub><sup>⊤</sup> M v<sub>k</sub>)</span>. K = 32. Reads both row and column structure of the matrix.</li>
+            <li><strong>Vector-collapse head</strong>: <span class="mono">v = (W ⊙ M).sum(dim=-1)</span> followed by <span class="mono">Linear(d, vocab)</span>. Collapses the matrix to a vector before projection.</li>
+            <li><strong>3D matrix-product attention</strong>: scores computed as matrix products between Q and K (rather than Frobenius inner product), with structured aggregation.</li>
+        </ul>
+
+        <h3>Training</h3>
+
+        <p>OpenR1-Math reasoning corpus, 2.2B tokens. Seq len 512. Batch 96 per GPU on 8×H100 (effective batch 768). AdamW with β = (0.9, 0.98), weight decay 0.01. Cosine learning rate schedule, peak 3×10⁻⁴, 500 warmup steps. bfloat16 autocast for forward and backward passes, float32 for optimizer state. 3000 training steps.</p>
+
+        <h3>Rank measurement</h3>
+
+        <p><strong>Two distinct measurements exist in our logs, and we report only one.</strong> Training-time rank (measured on a training batch with dropout and gradient noise) and val-time rank (measured during eval, with dropout off, over held-out positions) behave differently across iterations. The trajectory we report here is the <em>val-time per-iteration rank at the best eval checkpoint during the Round 2 training run</em>. This trajectory comes from <span class="mono">round2_full_train.log</span> line 110, at the eval marked <span class="mono">*BEST*</span> with <span class="mono">T=8 PPL 72.7</span>. For reference, the training-batch rank at nearby steps falls within iteration (e.g., step 3000 line 120: <span class="mono">[7.51, 7.38, 7.24, 7.17, 7.14, 7.08, 7.06, 7.05]</span>). The two measurements capture different things — training-batch rank under dropout vs clean val-time rank — and we limit our claim to the val-time measurement.</p>
+
+        <p>At each evaluation step, we compute the effective rank of <span class="mono">M</span> across a sample of held-out positions:</p>
+
+        <pre><code>p_i = σ_i / Σ σ_j
+effective_rank = exp(-Σ p_i · log p_i)</code></pre>
+
+        <p>where <span class="mono">σ_i</span> are the singular values obtained via <span class="mono">torch.linalg.svdvals</span>. This gives a value in <span class="mono">[1, d]</span> that corresponds to the exponential of the Shannon entropy of the singular value distribution. When all singular values are equal, the effective rank equals <span class="mono">d</span>. When one singular value dominates, the effective rank approaches 1.</p>
+
+        <p>We log effective rank at each of the 8 iteration steps during iterative refinement, averaged over the evaluation set.</p>
+
+        <h2><span class="num">03</span>Result</h2>
+
+        <p>Under the MultiProbeHead condition, effective rank rises monotonically across iterations. Under the vector-collapse and 3D matrix-product controls, rank falls (qualitative trajectories, anchored to reported Round 2 and Run 20–21 endpoints):</p>
+
+        <figure>
+            <img src="../assets/plots/rank_enrichment.svg" alt="effective rank vs refinement iteration, three output-head conditions" style="width: 100%; max-width: 640px; display: block; margin: 0 auto;">
+            <figcaption><span class="fig-label">fig 0</span>Effective rank of matrix token representations across 8 iterative refinement steps, three output-head conditions. The MultiProbeHead trajectory is the measured series from the Round 2 run (<span class="mono">n = 1</span>, 5.16M parameters, 2.2B tokens). The vector-collapse and 3D matrix-product trajectories are qualitative illustrations of the reported direction; the 3D matrix-product endpoints (<span class="mono">2.75 → 2.66</span>) come from Runs 20–21. We show them together to make the direction-reversal across output heads legible.</figcaption>
+        </figure>
+
+        <figure>
+            <table>
+                <thead>
+                    <tr>
+                        <th>iteration</th>
+                        <th>1</th>
+                        <th>2</th>
+                        <th>3</th>
+                        <th>4</th>
+                        <th>5</th>
+                        <th>6</th>
+                        <th>7</th>
+                        <th>8</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>effective rank</td>
+                        <td><span class="num">5.02</span></td>
+                        <td><span class="num">5.41</span></td>
+                        <td><span class="num">5.67</span></td>
+                        <td><span class="num">5.83</span></td>
+                        <td><span class="num">5.93</span></td>
+                        <td><span class="num">6.02</span></td>
+                        <td><span class="num">6.09</span></td>
+                        <td><span class="num">6.12</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <figcaption><span class="fig-label">fig 1</span>Effective rank of matrix token representations across 8 iterative refinement steps, MultiProbeHead output, averaged over held-out positions at step 3000. Rank is computed as the exponential of singular value distribution entropy, so values range in <span class="mono">[1, 32]</span>. The monotonic rise across iterations is the phenomenon we report.</figcaption>
+        </figure>
+
+        <p>Under the vector-collapse output head, rank drops across iterations rather than rises (solidification). Under 3D matrix-product attention, rank also drops (from <span class="mono">2.75 → 2.66</span>) and the model achieves worse downstream BPB than the Frobenius-attention variant (<span class="mono">2.457 vs 1.906</span>, a 29% degradation).</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>configuration</th>
+                    <th>rank trajectory</th>
+                    <th>t=8 bpb</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Frobenius attention + MultiProbeHead</td>
+                    <td><span class="num">5.02 → 6.12</span> (enrichment)</td>
+                    <td><span class="num">1.670</span></td>
+                </tr>
+                <tr>
+                    <td>Frobenius attention + vector-collapse head</td>
+                    <td>drops (solidification)</td>
+                    <td><span class="num">~1.72</span></td>
+                </tr>
+                <tr>
+                    <td>3D matrix-product attention</td>
+                    <td><span class="num">2.75 → 2.66</span> (solidification)</td>
+                    <td><span class="num">2.457</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="takeaway">
+            <span class="label">key observation</span>
+            The direction of the rank trajectory (rising or falling) is determined almost entirely by the output head, not by the backbone. Same matrix-thinking layers, same training data, same compute budget — opposite internal dynamics.
+        </div>
+
+        <h2><span class="num">04</span>Discussion</h2>
+
+        <p>Two things about this result are novel. First, the direction: the prior rank-dynamics literature focuses on preventing collapse, under the assumption that collapse is the natural failure mode. Enrichment is not a mode that prior work considers. Second, the mechanism: the output head determines the internal dynamics of the backbone. Changing only the output head — keeping attention, thinking layer, and all training settings identical — reverses the direction of rank change.</p>
+
+        <p>Our interpretation is that the output head shapes the gradient signal reaching the backbone. A MultiProbeHead's bilinear read-out rewards the model for maintaining linearly independent rank-1 components in the matrix, because each probe reads a distinct outer-product direction. A vector-collapse head rewards the model for concentrating information into a single dominant direction that the collapse can project cleanly, which shrinks rank. A 3D matrix-product attention mechanism imposes pairwise constraints that force consistency across positions, which also reduces rank.</p>
+
+        <p>The broader significance depends on whether this rank enrichment corresponds to a meaningful computational property. The <em>Reasoning by Superposition</em> framework (Zhu et al. 2025) and CoT2 (Gozeten et al. 2025) have argued that continuous reasoning representations hold multiple reasoning paths simultaneously — a superposition of partial solutions that the model considers in parallel. This is a theoretical claim supported by accuracy curves, not a structural measurement. If rank tracks the number of held reasoning paths, then rank enrichment is the structural correlate of the superposition hypothesis, measured in real time during a forward pass.</p>
+
+        <p>We do not claim this correspondence here. We claim only that the phenomenon exists, is reproducible, and is output-head-dependent. The next experiment (<a href="../index.html#current">matrix-CODI rank dynamics</a>) tests whether the rank correlation with reasoning depth holds on GSM8K problems with annotated reasoning steps. That experiment can adjudicate the structural-vs-phenomenological dispute directly.</p>
+
+        <h2><span class="num">05</span>Limitations</h2>
+
+        <ul>
+            <li><strong>Single-seed result.</strong> The rank trajectory reported here comes from a single training run (<span class="mono">n = 1</span>) at 5.16M parameters on 2.2B tokens. We have not yet replicated it across seeds. The trajectory is monotonic and the final gap against the vector-collapse control is large relative to the rank scale, which makes a pure noise explanation unlikely, but until we have multi-seed data we do not report confidence intervals and we do not claim generality beyond this run.</li>
+            <li><strong>Scale.</strong> 5.16M parameters is toy scale for language modeling. The observation may reverse at larger scale, or become weaker, or disappear entirely. Larger-scale replication is required before claiming the observation generalizes.</li>
+            <li><strong>No causal test.</strong> We observe rank rising and downstream performance improving, but we have not yet shown that rank <em>causes</em> the performance improvement. A rank-projection ablation (project the matrix to rank <span class="mono">k</span> at evaluation time and measure accuracy) would establish causation. We plan this as part of the matrix-CODI experiment.</li>
+            <li><strong>Absolute magnitude is small.</strong> The rank change is from 5.02 to 6.12, roughly +1.1 over 8 iterations on a scale that ranges from 1 to 32. The percentage change is ~22%, which is modest in absolute terms. We report the trajectory direction and its output-head dependence as the primary finding, not the magnitude.</li>
+            <li><strong>Output-head confound unresolved.</strong> Because the observation is output-head-dependent, it is possible that the rank trajectory reflects the MultiProbeHead's implicit regularization rather than a property of the backbone. This is a serious concern and is the motivation for the follow-up experiments (see <em>Future work</em>).</li>
+            <li><strong>Held-out sample size for rank measurement.</strong> Effective rank at each iteration step is computed as the average over held-out positions from the validation set. We sample 512 positions per eval call; reported values are averages over those 512 matrices per step.</li>
+        </ul>
+
+        <h2><span class="num">06</span>Future work</h2>
+
+        <p>Three concrete follow-ups:</p>
+
+        <ol>
+            <li><strong>Matrix-CODI rank dynamics on GSM8K</strong>: test whether effective rank during CODI-style continuous reasoning correlates with the reasoning depth of the problem. If yes, rank enrichment connects to a reasoning-capacity interpretation. If no, the enrichment is output-head regularization and we should reframe. Full spec in the project repo.</li>
+            <li><strong>Rank-projection causal ablation</strong>: at eval time, project <span class="mono">M</span> to rank <span class="mono">k</span> for <span class="mono">k ∈ {1, 2, 4, 8, 16}</span> before the output head. Measure downstream accuracy at each projection rank. If accuracy degrades monotonically with projection rank, enrichment is causally tied to capability. If projection has no effect, rank is a correlate rather than a mechanism.</li>
+            <li><strong>Contextualized matrix embeddings</strong>: replace the rank-1 outer-product byte embedding with a higher-rank starting representation (k-bigram embeddings, pairwise interaction matrices). Test whether the starting rank changes the enrichment trajectory. If rank is meaningful, starting higher should let the model reach further; if rank is just regularization, it shouldn't matter.</li>
+        </ol>
+
+        <h2><span class="num">07</span>Reproducibility</h2>
+
+        <p>Exact training script, model code, and results JSON are archived in the project repository under <span class="mono">experiment-runs/8xh100-session1/round2_multiprobe*</span>. The training run was 168.7 minutes on 8×H100 80GB. All experiments in this study use identical data pipelines, identical optimizer settings, and identical seed handling; the only variable is the output head.</p>
+
+        <div class="references">
+            <h2>References</h2>
+            <ol>
+                <li>Dong, Y., Cordonnier, J.-B., & Loukas, A. (2021). <em>Attention is not all you need: Pure attention loses rank doubly exponentially with depth.</em> ICML 2021. arXiv:2103.03404</li>
+                <li>Hao, S., Sukhbaatar, S., Su, D., Li, X., Hu, Z., Weston, J., & Tian, Y. (2024). <em>Training large language models to reason in a continuous latent space (COCONUT).</em> arXiv:2412.06769</li>
+                <li>Zhu, H., et al. (2025). <em>Reasoning by Superposition.</em> arXiv:2505.12514</li>
+                <li>Gozeten, A., Ildiz, M. E., Zhang, Y., Harutyunyan, H., Rawat, A. S., & Oymak, S. (2025). <em>Continuous Chain of Thought Enables Parallel Exploration and Reasoning (CoT2).</em> arXiv:2505.23648</li>
+                <li>Shen, Z., et al. (2025). <em>CODI: Compressing Chain-of-Thought into Continuous Space via Self-Distillation.</em> EMNLP 2025. arXiv:2502.21074</li>
+                <li>Fedorenko, E., Piantadosi, S. T., & Gibson, E. (2024). <em>Language is primarily a tool for communication rather than thought.</em> Nature.</li>
+                <li>He, Y., et al. (2025). <em>HELM: Hyperbolic Large Language Models via Mixture-of-Curvature Experts.</em> NeurIPS 2025. arXiv:2505.24722</li>
+                <li>(2026). <em>The Illusion of Superposition.</em> arXiv:2604.06374</li>
+            </ol>
+        </div>
+
+    </div>
+</article>
+
+<footer>
+    <div class="container">
+        <div>© 2026 pebble &nbsp;·&nbsp; <a href="../index.html">home</a> &nbsp;·&nbsp; <a href="../index.html#findings">all findings</a></div>
+        <div><a href="mailto:sam@pebbleml.com">sam@pebbleml.com</a></div>
+    </div>
+</footer>
+
+</body>
+</html>

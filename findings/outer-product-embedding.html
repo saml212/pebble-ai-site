@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Outer-product matrix embedding advantage at T=1 — a reproducible per-parameter advantage for rank-1 byte embeddings from pebble.">
+<meta property="og:title" content="Outer-Product Matrix Embedding Advantage at T=1 — pebble">
+<meta property="og:description" content="Research note: a rank-1 outer-product byte embedding outperforms flat-vector baselines at single-step processing across every configuration we tested.">
+<meta property="og:type" content="article">
+<link rel="icon" type="image/svg+xml" href="../assets/pebble.svg">
+<title>Outer-Product Matrix Embedding Advantage at T=1 — pebble</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #FAF5E7;
+    --text: #1a1a1a;
+    --muted: #5a5a5a;
+    --accent: #8B2E1F;
+    --line: #1a1a1a;
+    --code-bg: #f0e9d3;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.68;
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.mono, code, pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.86em;
+}
+
+a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+a:hover { text-decoration-thickness: 2px; }
+
+.container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 32px;
+}
+
+.sans {
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+/* ────── header ────── */
+header.paper {
+    border-bottom: 1px solid var(--line);
+    padding: 22px 0;
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+header.paper .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 860px;
+}
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: -0.02em;
+}
+header.paper nav a {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.85rem;
+    margin-left: 22px;
+    font-weight: 500;
+}
+header.paper nav a:hover { color: var(--accent); }
+
+/* ────── title block ────── */
+.title-block {
+    padding: 80px 0 60px;
+    border-bottom: 1px solid var(--line);
+}
+.paper-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    margin-bottom: 24px;
+    font-weight: 700;
+}
+h1.paper-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.028em;
+    margin-bottom: 24px;
+}
+.authors {
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+.authors .author {
+    font-weight: 600;
+}
+.affil {
+    color: var(--muted);
+    font-size: 0.92rem;
+    margin-bottom: 10px;
+}
+.date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* ────── body ────── */
+article { padding: 50px 0 40px; }
+
+.abstract {
+    border: 1px solid var(--line);
+    padding: 28px 32px;
+    margin-bottom: 48px;
+    background: var(--bg);
+    position: relative;
+}
+.abstract::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px; right: -1px;
+    height: 3px;
+    background: var(--accent);
+}
+.abstract .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: block;
+}
+.abstract p { margin: 0; font-size: 1rem; line-height: 1.65; }
+
+article h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin: 56px 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+}
+article h2 .num {
+    color: var(--accent);
+    margin-right: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9em;
+}
+article h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 36px 0 14px;
+}
+article p {
+    margin-bottom: 18px;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+article ul, article ol {
+    margin: 0 0 20px 24px;
+    padding: 0;
+}
+article li {
+    margin-bottom: 10px;
+    line-height: 1.65;
+}
+article ul { list-style: none; }
+article ul li { padding-left: 18px; position: relative; }
+article ul li::before {
+    content: '▪';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+}
+
+/* ────── code blocks ────── */
+pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    padding: 18px 22px;
+    margin: 24px 0;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+code {
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border: 1px solid var(--line);
+    font-size: 0.85em;
+}
+pre code {
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+/* ────── figures and tables ────── */
+figure {
+    margin: 32px 0;
+    border: 1px solid var(--line);
+    padding: 24px;
+    background: var(--bg);
+}
+figcaption {
+    font-size: 0.86rem;
+    color: var(--muted);
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--line);
+    font-family: 'Space Grotesk', sans-serif;
+    line-height: 1.55;
+}
+figcaption .fig-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-right: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.94rem;
+}
+th, td {
+    border: 1px solid var(--line);
+    padding: 12px 16px;
+    text-align: left;
+}
+th {
+    background: var(--code-bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+}
+td .num { font-family: 'JetBrains Mono', monospace; font-size: 0.94em; }
+
+/* ────── ascii plot ────── */
+.ascii-plot {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    padding: 24px 32px;
+    margin: 24px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.35;
+    overflow-x: auto;
+    white-space: pre;
+}
+
+/* ────── callouts ────── */
+.takeaway {
+    border-left: 4px solid var(--accent);
+    padding: 14px 0 14px 24px;
+    margin: 28px 0;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+.takeaway .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* ────── references ────── */
+.references {
+    margin-top: 56px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+}
+.references h2 {
+    border: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+.references ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: ref;
+}
+.references li {
+    counter-increment: ref;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin-bottom: 14px;
+    padding-left: 44px;
+    position: relative;
+}
+.references li::before {
+    content: '[' counter(ref) ']';
+    position: absolute;
+    left: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+/* ────── footer ────── */
+footer {
+    padding: 60px 0 64px;
+    border-top: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 80px;
+}
+footer .container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    max-width: 860px;
+}
+footer a { color: var(--accent); }
+
+/* ────── responsive ────── */
+@media (max-width: 720px) {
+    body { font-size: 17px; }
+    .container { padding: 0 24px; }
+    .title-block { padding: 56px 0 44px; }
+    h1.paper-title { font-size: 1.8rem; }
+    article h2 { font-size: 1.35rem; }
+    .abstract { padding: 24px; }
+    .ascii-plot { font-size: 0.68rem; padding: 18px 20px; }
+    header.paper nav a { margin-left: 12px; font-size: 0.78rem; }
+    header.paper .container { flex-wrap: wrap; gap: 10px; }
+}
+</style>
+</head>
+<body>
+
+<header class="paper">
+    <div class="container">
+        <a href="../index.html" class="logo">
+            <svg width="19" height="24" viewBox="0 0 189.19 244.18" aria-hidden="true">
+                <path fill="#8B2E1F" d="M154.14,12.56C111.33-20.28,21.86,11.88,3.07,101.86c-17.52,83.86,42.97,164.41,108.14,136.78,68.89-29.2,112.08-173.04,42.94-226.08ZM103.14,218.13C49.43,240.91-.41,174.53,14.03,105.43,29.52,31.28,103.24,4.78,138.52,31.84c56.99,43.71,21.39,162.22-35.38,186.29Z"/>
+            </svg>
+            pebble
+        </a>
+        <nav>
+            <a href="../index.html">← home</a>
+            <a href="../index.html#findings">findings</a>
+            <a href="../index.html#roadmap">roadmap</a>
+            <a href="mailto:sam@pebbleml.com">contact</a>
+        </nav>
+    </div>
+</header>
+
+<section class="title-block">
+    <div class="container">
+        <div class="paper-meta">research note &nbsp;·&nbsp; finding 03 of 05</div>
+        <h1 class="paper-title">The outer-product matrix embedding advantage at T=1</h1>
+        <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 18px;">single-seed observations · three comparisons</p>
+        <p class="authors"><span class="author">Sam Larson</span></p>
+        <p class="affil">pebble, San Francisco</p>
+        <p class="date">April 2026 &nbsp;·&nbsp; sam@pebbleml.com</p>
+    </div>
+</section>
+
+<article>
+    <div class="container">
+
+        <div class="abstract">
+            <span class="label">abstract</span>
+            <p>We report an empirical observation that has held across three comparisons in the matrix-thinking project: a token embedding defined as the outer product of two learned vectors (<span class="mono">byte b → u<sub>b</sub> ⊗ v<sub>b</sub></span>, producing a rank-1 <span class="mono">d × d</span> matrix) gives a lower T=1 BPB than a flat-vector byte embedding at comparable or worse parameter counts. The cleanest signal is the Run 22 param-matched ablation, where the flat-vector baseline has <span class="mono">2.2×</span> more parameters than the matrix model and still loses T=1 BPB by 26% (Matrix 2.55M T=1 BPB <span class="mono">2.117</span> vs Flat 5.66M T=1 BPB <span class="mono">2.872</span>). The Round 2 comparison on 2.19B tokens of reasoning data (Run 12 vs Run 13) shows the same direction at a larger scale: Matrix Thinker 5.15M T=1 BPB <span class="mono">2.12</span> vs tokens-matched LoopFormer 5.33M T=1 BPB <span class="mono">4.29</span> — a <span class="mono">175×</span> gap in PPL (140.6 vs 24,587.7). A param-asymmetric ablation (Run 18) gives the flat baseline 10× more parameters and matrix still wins at T=1 (<span class="mono">2.18</span> vs <span class="mono">3.22</span>); we flag it as unfair on params and treat it as supporting data, not headline. All runs are <span class="mono">n = 1</span> at under 25M parameters. The mechanism — whether the advantage comes from the rank-1 matrix structure or from the factored parameterization (which any low-rank bottleneck embedding would share) — is unresolved, and a three-way ablation (standard flat vs ALBERT-style bottleneck vs outer-product) is the single Priority 1 follow-up.</p>
+        </div>
+
+        <h2><span class="num">01</span>Background</h2>
+
+        <p>Standard transformer language models embed each vocabulary item as a flat <span class="mono">d</span>-dimensional vector. The embedding table has shape <span class="mono">(V, d)</span>, a lookup produces a vector, and the rest of the model treats that vector as the unit of computation. The per-token parameter cost is <span class="mono">d</span>.</p>
+
+        <p>Matrix-valued token representations change the unit. Each token becomes a <span class="mono">d × d</span> matrix rather than a flat <span class="mono">d</span>-dim vector. The simplest way to produce such a matrix from a discrete token id is the outer product of two learned vectors: for each byte <span class="mono">b</span>, keep two <span class="mono">d</span>-dim tables <span class="mono">u<sub>b</sub></span> and <span class="mono">v<sub>b</sub></span>, and define the embedding as the rank-1 matrix <span class="mono">u<sub>b</sub> ⊗ v<sub>b</sub></span>. The matrix has <span class="mono">d²</span> entries and <span class="mono">2d</span> parameters per token. The two are related by a strict constraint: every row of the matrix is a scalar multiple of <span class="mono">v<sub>b</sub></span> and every column is a scalar multiple of <span class="mono">u<sub>b</sub></span>. No information has been added relative to the two <span class="mono">d</span>-dim vectors, but the model now sees a structured <span class="mono">d × d</span> object that downstream matrix operations can read along rows and columns separately.</p>
+
+        <p>The interesting empirical question is whether this embedding produces a better starting point for a language model than a standard flat-vector embedding at comparable parameter counts. The question matters because the outer-product embedding sits at the boundary between two interpretations. One interpretation: the matrix structure is substantive — bilinear read-outs can read the row and column directions independently, and downstream matrix operations preserve that structure. The other interpretation: any low-rank factored embedding (for example, an ALBERT-style bottleneck of shape <span class="mono">V → m → d²</span>) would give the same advantage, because the advantage comes from the compressed parameterization rather than from the matrix shape per se. We have empirical evidence that the first interpretation is consistent with the data; we do not have evidence that it is preferred over the second. This note reports the gap, describes three comparisons that produced it, and names the experiment that would separate the two interpretations.</p>
+
+        <p>The sibling notes in this series (<a href="rank-enrichment.html">finding 01</a> and <a href="output-head-dynamics.html">finding 02</a>) describe what happens during iterative refinement under matrix operations. The present note concerns only the embedding layer and only the <span class="mono">T = 1</span> setting (no iteration). The advantage it reports is about the starting representation, before any thinking loop has run.</p>
+
+        <h2><span class="num">02</span>Setup</h2>
+
+        <h3>The outer-product embedding</h3>
+
+        <p>For vocabulary size <span class="mono">V</span> and matrix dimension <span class="mono">d</span>, we maintain two embedding tables <span class="mono">E<sub>u</sub>, E<sub>v</sub> ∈ ℝ<sup>V × d</sup></span>. A byte <span class="mono">b</span> is embedded as:</p>
+
+        <pre><code>u = E_u[b]                    # (d,)
+v = E_v[b]                    # (d,)
+M = u ⊗ v                     # (d, d), rank-1
+# implementation: torch.einsum('...i,...j->...ij', u, v)</code></pre>
+
+        <p>Each token therefore carries <span class="mono">2d</span> parameters and produces a <span class="mono">d × d</span> matrix with <span class="mono">d²</span> entries. Initialization is <span class="mono">N(0, σ²)</span> on each table; because the outer product multiplies two independent samples, the entries of the resulting matrix have std <span class="mono">σ²</span> rather than <span class="mono">σ</span>. We scale <span class="mono">σ = √target_std</span> so the product matrix has the target standard deviation at init. This correction was important — an earlier run without it produced degenerate embeddings.</p>
+
+        <h3>The three comparisons</h3>
+
+        <p>We ran three comparisons that bear on the embedding question. None is a clean three-way ablation; the three together bound the effect from several directions. One is a true param-matched ablation (Run 22). One is a tokens-matched comparison on a larger reasoning corpus (Round 2: Run 12 vs Run 13). One is param-asymmetric and we flag it.</p>
+
+        <ul>
+            <li><strong>Run 22 param-matched ablation (headline).</strong> Matrix model: <span class="mono">d = 16</span>, 12 layers, 2,552,788 parameters. Flat-vector model: <span class="mono">d<sub>model</sub> = 256</span>, 12 layers, standard attention, 5,658,428 parameters. The flat model has <span class="mono">2.2×</span> more parameters than the matrix model. Same data pipeline, same optimizer, same byte tokenization, same step count. Matrix T=1 BPB <span class="mono">2.117</span>, Flat T=1 BPB <span class="mono">2.872</span>. The flat model wins at T=8 (iteration helps it more) but loses at T=1 by 26% BPB <em>despite</em> the parameter advantage. Param-matching at <span class="mono">d = 16</span> is structurally hard: a standard 256-dim attention layer costs ~262K params, a matrix 16×16 layer costs ~2K params, a ~130× per-layer gap. There is no way to match both the per-layer FLOPs and the total param count cleanly without changing something else — so Run 22 takes the version of the test where the flat model is <em>over</em>-parameterized relative to the matrix model.</li>
+            <li><strong>Round 2 (Run 12 vs Run 13): tokens-matched reasoning corpus.</strong> Matrix Thinker <span class="mono">d = 32</span>, 8 thinking layers, MultiProbeHead output (no vector collapse), 5,155,960 parameters, against a LoopFormer vector baseline at 5,330,400 parameters, on 2.19B tokens of OpenR1-Math reasoning traces plus WikiText-103. Same data, same batch (96/GPU × 8 GPUs = 768 effective), same optimizer, same 3000-step budget. Matrix Thinker reached T=1 PPL <span class="mono">140.6</span> → BPB <span class="mono">2.12</span>; LoopFormer reached L=1 PPL <span class="mono">24,587.7</span> → BPB <span class="mono">4.29</span>. That is a <span class="mono">175×</span> gap in PPL and a <span class="mono">2×</span> gap in BPB at the single-step evaluation. LoopFormer then closes and reverses at L=8 (PPL <span class="mono">26.0</span>, beating Matrix Thinker's T=8 PPL 72.4 by <span class="mono">2.8×</span>) — iteration is how the vector baseline becomes competitive. The T=1 gap is the embedding-layer observation; the L=8 reversal is the reason we confine the claim to the single-step setting.</li>
+            <li><strong>Run 18 param-asymmetric ablation (flagged).</strong> Matrix model: <span class="mono">d = 16</span>, 2.4M parameters. Flat model: outer-product embedding then flatten to a 256-dim vector, standard transformer stack, 24M parameters (<span class="mono">10×</span> the matrix). Same embedding <em>source</em>. Same data. Matrix T=1 BPB <span class="mono">2.18</span>, Flat T=1 BPB <span class="mono">3.22</span>. The flat model wins at T=8 due to its parameter advantage but loses at T=1 even with 10× the parameters. We flag the comparison as unfair on params and treat it as a supporting data point. It is included because the embedding <em>source</em> is held fixed (same outer-product lookup), so the only difference is whether downstream layers see the structured matrix or a flattened vector.</li>
+        </ul>
+
+        <p>A fourth data point from our earliest 8×H100 run is worth naming as a pre-registration check but not as a BPB comparison: on a smaller 118M-token WikiText-103 corpus, a Matrix Thinker (Run 10, 5,154,936 params) reached T=1 PPL <span class="mono">722.9</span> against a Vector Thinker baseline (Run 11, 5,149,248 params) at T=1 PPL <span class="mono">8,273.7</span>. That is an <span class="mono">11.4×</span> PPL advantage at matched ~5.15M parameters. We do not report a BPB number for this pair because the summary files for that run did not record one and we do not want to back-fill a conversion after the fact. We mention it only to note that the T=1 direction of the effect reproduces on a different dataset at a different data scale.</p>
+
+        <h3>Metric</h3>
+
+        <p>BPB (bits per byte, log base 2) is the eval loss normalized to bytes. For a model at vocab <span class="mono">V</span> with a tokenizer that produces <span class="mono">~k</span> bytes per token on a given corpus, BPB is the cross-entropy in nats divided by <span class="mono">k · ln(2)</span>. For byte-level models (vocab = 256), BPB is the cross-entropy in bits per byte directly. We report BPB rather than PPL because our comparisons span byte-level and BPE-tokenized runs; reporting a single number across both requires the byte-level denominator. The Round 2 BPB numbers (Run 12 and Run 13) are derived from val loss using the reasoning-corpus bytes-per-token ratio; the Run 18 and Run 22 numbers are direct byte-level BPB.</p>
+
+        <h2><span class="num">03</span>Results</h2>
+
+        <p>At T=1 the outer-product matrix embedding gives a lower BPB than the flat-vector baseline in each of the three comparisons. The cleanest of the three is Run 22, where the flat baseline has 2.2× more parameters than the matrix model and still loses. We lead with that comparison because it is the one in which the baseline is handed every advantage except the embedding.</p>
+
+        <figure>
+            <img src="../assets/plots/outer_product_embedding.svg" alt="T=1 BPB for matrix outer-product embedding vs flat-vector baselines across three comparisons" style="width: 100%; max-width: 680px; display: block; margin: 0 auto;">
+            <figcaption><span class="fig-label">fig 1</span>T=1 bits-per-byte loss, matrix outer-product embedding vs flat-vector baseline, across three comparisons. Parameter counts in millions are printed below each bar. Run 22 (param-matched ablation, flat baseline has 2.2× <em>more</em> params than matrix) shows <span class="mono">2.117</span> vs <span class="mono">2.872</span>. Round 2 (Run 12 vs Run 13, ~5.15M matrix vs ~5.33M LoopFormer, 2.19B-token reasoning corpus) shows <span class="mono">2.12</span> vs <span class="mono">4.29</span>. Run 18 (param-asymmetric, flat has 10× more params, hatched to mark the asymmetry) shows <span class="mono">2.18</span> vs <span class="mono">3.22</span>. All runs <span class="mono">n = 1</span>. The direction of the gap is consistent across the three; the magnitude depends on the exact configuration.</figcaption>
+        </figure>
+
+        <figure>
+            <table>
+                <thead>
+                    <tr>
+                        <th>comparison</th>
+                        <th>matrix</th>
+                        <th>baseline</th>
+                        <th>t=1 bpb (matrix)</th>
+                        <th>t=1 bpb (baseline)</th>
+                        <th>gap</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Run 22 (param-matched)</td>
+                        <td><span class="num">2.55M</span>, d=16</td>
+                        <td><span class="num">5.66M</span>, flat d<sub>model</sub>=256</td>
+                        <td><span class="num">2.117</span></td>
+                        <td><span class="num">2.872</span></td>
+                        <td><span class="num">−26%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Round 2 (Run 12 vs Run 13)</td>
+                        <td><span class="num">5.15M</span>, d=32</td>
+                        <td><span class="num">5.33M</span>, LoopFormer</td>
+                        <td><span class="num">2.12</span></td>
+                        <td><span class="num">4.29</span></td>
+                        <td><span class="num">−51%</span></td>
+                    </tr>
+                    <tr>
+                        <td>Run 18 (asymmetric)</td>
+                        <td><span class="num">2.4M</span>, d=16</td>
+                        <td><span class="num">24M</span>, flat 256-dim</td>
+                        <td><span class="num">2.18</span></td>
+                        <td><span class="num">3.22</span></td>
+                        <td><span class="num">−32%</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <figcaption><span class="fig-label">fig 2</span>Three comparisons of T=1 BPB for the outer-product matrix embedding against flat-vector baselines. "Gap" is the matrix BPB expressed as a percentage change against the baseline (negative = matrix better). Run 22 is the strongest clean signal because the flat baseline has 2.2× more parameters. Round 2 shows the same direction at a larger 2.19B-token reasoning corpus. Run 18 is a 10× param-asymmetric comparison and is listed as supporting data only.</figcaption>
+        </figure>
+
+        <div class="takeaway">
+            <span class="label">key observation</span>
+            At T=1 (no iteration), the outer-product matrix embedding gives a lower BPB than a flat-vector baseline in each of the three comparisons we ran, including the one in which the flat baseline has 2.2× more parameters than the matrix model. The direction of the effect is consistent; the magnitude ranges from <span class="mono">26%</span> to <span class="mono">51%</span>. The mechanism — whether this is the rank-1 matrix structure or the factored parameterization — is not resolved by the current data.
+        </div>
+
+        <h3>What the advantage is not</h3>
+
+        <p>The single-step advantage does not translate into a total-BPB advantage once iteration is allowed. With enough parameters and enough iterative refinement steps, a flat-vector model can close the gap and then reverse it: in Run 22 the flat model reaches T=8 BPB <span class="mono">~1.50</span> against the matrix model's T=8 BPB <span class="mono">1.86</span>; in Round 2, LoopFormer reaches L=8 PPL <span class="mono">26.0</span> against Matrix Thinker's T=8 PPL <span class="mono">72.4</span>, a 2.8× reversal in LoopFormer's favor at full iteration depth; and in Run 18 the 24M flat model reaches T=8 BPB <span class="mono">1.01</span> against the matrix model's T=8 BPB <span class="mono">1.91</span>. We report these numbers so the T=1 claim is not over-read. The embedding-layer advantage is at the starting point; it says nothing about what happens once the model is allowed to think. Our earlier note on the FLOPs-matched gap (Run 14) makes the point in the reverse direction: matrix <em>operations</em> at matched FLOPs lose to vector operations. The outer-product <em>embedding</em> wins at T=1; the outer-product <em>thinking layers</em> do not win at matched FLOPs at T=8. These are two different findings at two different layers of the stack.</p>
+
+        <h2><span class="num">04</span>Discussion</h2>
+
+        <p>The central interpretive question is whether the T=1 advantage comes from the matrix structure or from the factored parameterization. The outer-product embedding is simultaneously two things. It is a rank-1 matrix: a structured <span class="mono">d × d</span> object that bilinear read-outs can read along row and column directions. It is also a factored parameterization: a <span class="mono">d²</span>-dim object produced from <span class="mono">2d</span> free parameters via the outer product, which is one kind of low-rank bottleneck embedding. Every one of our comparisons conflates these two properties. The flat-vector baselines in Run 22, Round 2, and Run 18 do not carry the factored parameterization — their embeddings are standard <span class="mono">(V, d)</span> tables with <span class="mono">d</span> free parameters per token and no compression. We cannot tell from the data above whether a flat-vector model with a comparably bottlenecked embedding (for example an ALBERT-style <span class="mono">(V, m) → (m, d²)</span> factorization with <span class="mono">m = 2d</span>, matching the <span class="mono">2d</span> free parameters per token) would close the gap.</p>
+
+        <p>Two candidate mechanisms, one observation. The first candidate is that the rank-1 structure is doing real work: downstream matrix operations in our stack read the row and column directions separately (RowThenCol projections, Frobenius attention, MultiProbeHead bilinear read-outs), and a <span class="mono">d × d</span> object presents those directions to the layer above in a way a flattened vector does not. The second candidate is that compression alone is the driver, and any low-rank factored embedding with the same number of free parameters would produce the same T=1 gap. The current data is consistent with either. We do not take a position, and we defer the question to the three-way ablation listed as Priority 1 in <em>Future work</em>.</p>
+
+        <p>A related observation: the embedding layer carries a large fraction of the total parameter budget in our models at this scale. For the Round 2 configuration the breakdown is embed 3.3M, think 197K, head 1.6M — the embedding is <span class="mono">~64%</span> of the model. At small scale the embedding is not a thin look-up table bolted onto a larger backbone; it is most of the model. An advantage at the embedding layer therefore shows up in T=1 BPB more strongly than it would at larger scale, where the embedding fraction shrinks. Whether the gap persists at 100M or 1B parameters is an open question and one we do not have the compute to answer today.</p>
+
+        <p>The relationship to prior work on structured token representations is worth naming. Smolensky's Tensor Product Representations (1990) bind variable-filler pairs via tensor products and were the earliest formal proposal for structured token-level encodings in neural networks. Soft TPR (Sun et al., NeurIPS 2024) is a recent continuous version for visual disentanglement. Our outer-product embedding is a special case — a rank-1 tensor product of two learned vectors with no explicit role/filler interpretation — that we use as a byte-to-matrix lifting rather than as a compositional binding. The line of work makes the ingredient itself unsurprising; what the observation here adds is the T=1 gap against a parameter-advantaged flat-vector baseline in a byte-level language modeling setting, and the direction-reproduction across three different configurations.</p>
+
+        <h2><span class="num">05</span>Limitations</h2>
+
+        <ul>
+            <li><strong>Single seed for every run.</strong> All three comparisons are <span class="mono">n = 1</span>. We have not replicated across seeds. The direction of the effect is consistent across three different model configurations and two different training corpora, which is weak evidence against a pure-noise explanation, but we do not report confidence intervals and do not claim the gap magnitude is tight.</li>
+            <li><strong>Small scale.</strong> The largest model in the comparison is the Run 18 flat baseline at 24M parameters. The matrix models are all under 6M parameters. Conclusions about representation quality at this scale are fragile: at 288K parameters our models barely learn unigram statistics, and 5M is still small enough that data efficiency can mask or invert architectural effects. The gap may shrink, hold, or reverse at 100M+.</li>
+            <li><strong>The mechanism is unresolved.</strong> The observation conflates "rank-1 matrix structure" and "factored parameterization." We cannot tell from the current data which is doing the work. A clean three-way ablation — standard flat embedding vs. ALBERT-style bottleneck embedding (matched free parameters) vs. outer-product embedding — has not been run. This is the single most important follow-up and we flag it as such in <em>Future work</em>.</li>
+            <li><strong>Cross-comparison inconsistencies.</strong> The three comparisons use different matrix dimensions (<span class="mono">d = 32</span> for Round 2, <span class="mono">d = 16</span> for Run 18 and Run 22), different training corpora (2.19B tokens of OpenR1-Math reasoning + WikiText-103 for Round 2; Run 18 and Run 22 used byte-level mixed corpora), and different baseline architectures (LoopFormer vs standard transformer flat). The direction of the effect holds across these varied settings, which is the reason we call the observation reproducible; the variation is also the reason we cannot derive a single clean effect size from the numbers.</li>
+            <li><strong>BPB conversion across comparisons.</strong> Round 2 reports PPL and we convert to BPB via the reasoning-corpus bytes-per-token ratio. Run 18 and Run 22 are byte-level and report BPB directly. The two BPB numbers are on comparable scales but not identically defined. We keep the reported precision modest (two to three decimal places) for this reason.</li>
+            <li><strong>The T=1 framing is narrow.</strong> The claim is about single-step processing. Once iterative refinement is enabled, flat-vector models with more parameters can beat matrix models at T=8 (Run 18, Run 22). The embedding-layer advantage is real but it is not the whole story, and it should not be read as "matrices beat vectors in general."</li>
+            <li><strong>At small scale, embedding dominates.</strong> The embedding is ~64% of the parameter budget in the Round 2 model. A gap at the embedding layer therefore moves the total T=1 BPB more strongly than it would at larger scale. We do not know how the effect size scales with total parameters.</li>
+        </ul>
+
+        <h2><span class="num">06</span>Future work</h2>
+
+        <p>Three concrete follow-ups, in priority order:</p>
+
+        <ol>
+            <li><strong>Param-matched three-way embedding ablation.</strong> Run three models on identical data, optimizer, step count, and seed set (3+ seeds per condition), varying only the embedding: (a) standard flat <span class="mono">(V, d)</span> with <span class="mono">d</span> chosen so total params match, (b) ALBERT-style bottleneck <span class="mono">(V, m) → (m, d²)</span> with <span class="mono">m = 2d</span> to match free params per token but no structural constraint, (c) outer-product <span class="mono">(V, d) × (V, d)</span>. Downstream backbone held fixed. If (a) and (b) track each other but (c) wins, the advantage is structural. If (b) and (c) track each other but (a) loses, the advantage is compression. If all three track, we were wrong and should say so. This is the experiment that has the highest chance of resolving the mechanism question. Listed in the project roadmap as a backup path; the data in this note suggests it should be moved forward.</li>
+            <li><strong>Higher-rank starting embeddings.</strong> Replace the rank-1 outer product with a sum of <span class="mono">k</span> outer products (rank-<span class="mono">k</span> start) or a pairwise-interaction embedding (k-bigram, encoding identity, left context, and right context as three separate rank-1 components summed). If the starting rank matters, higher-rank starts should shift the T=1 BPB; if the matrix is a reshaped vector and nothing more, they should not. This is a second way to probe the structure-vs-compression question from the Discussion.</li>
+            <li><strong>Scale replication at 10M+ parameters.</strong> Run the matched comparison at 10M–50M parameters on a standard byte benchmark (enwik8 or text8, proper splits). If the gap holds, the finding is publishable beyond an internal note. If it shrinks to noise, the observation is a small-scale artifact and we reframe. This is expensive (~50 H100 hours) and justified only if the three-way ablation confirms a structural advantage at small scale.</li>
+        </ol>
+
+        <h2><span class="num">07</span>Reproducibility</h2>
+
+        <p>The outer-product embedding module lives at <span class="mono">matrix-thinking/src/matrix_model.py</span> (<span class="mono">class MatrixEmbedding</span>, about 20 lines). The training scripts for the three comparisons are archived:</p>
+
+        <ul>
+            <li>Run 22 param-matched ablation: matrix and flat scripts archived under <span class="mono">experiment-runs/run22/</span>. The flat run crashed near step 2800 due to pod shutdown; we report the T=1 and T=8 BPB at the latest saved checkpoint before the crash and mark the T=8 number as approximate.</li>
+            <li>Round 2 Matrix Thinker (Run 12): <span class="mono">experiment-runs/8xh100-session1/round2_matrix_script.py</span>. Summary at <span class="mono">round2_multiprobe_SUMMARY.txt</span>. Full training log at <span class="mono">round2_matrix_train.log</span>.</li>
+            <li>Round 2 LoopFormer tokens-matched baseline (Run 13): <span class="mono">experiment-runs/8xh100-session1/loopformer_96K_script.py</span> with <span class="mono">max_steps=3000</span>. Results JSON at <span class="mono">loopformer_3000steps_results.json</span>.</li>
+            <li>Run 18 asymmetric ablation: <span class="mono">experiment-runs/run18/</span>, 24M flat-vector model with outer-product embedding source.</li>
+        </ul>
+
+        <p>Raw numbers quoted in this note, with source files:</p>
+
+        <ul>
+            <li>Run 22 Matrix T=1 BPB <span class="mono">2.117</span>, T=8 BPB <span class="mono">1.861</span>. Flat T=1 BPB <span class="mono">2.872</span>, T=8 BPB <span class="mono">~1.502</span>. Source: <span class="mono">EXPERIMENT_LOG.md</span> Run 22 entry.</li>
+            <li>Round 2 Matrix Thinker (Run 12) T=1 PPL <span class="mono">140.6</span> → BPB <span class="mono">2.12</span>, T=8 PPL <span class="mono">72.4</span> → BPB <span class="mono">1.67</span>. 5,155,960 params, 2.19B train tokens. Source: <span class="mono">round2_multiprobe_SUMMARY.txt</span> and <span class="mono">EXPERIMENT_LOG.md</span> Run 12 entry.</li>
+            <li>Round 2 LoopFormer (Run 13) L=1 PPL <span class="mono">24,587.7</span> → BPB <span class="mono">4.29</span> (<span class="mono">val_loss = 10.11</span>), L=8 PPL <span class="mono">26.0</span>. 5,330,400 params, same 2.19B-token corpus and same optimizer as Run 12. Source: <span class="mono">loopformer_3000steps_results.json</span>.</li>
+            <li>Run 18 Matrix T=1 BPB <span class="mono">2.18</span>, T=8 BPB <span class="mono">1.91</span>. Flat T=1 BPB <span class="mono">3.219</span>, T=8 BPB <span class="mono">1.011</span>. Source: <span class="mono">EXPERIMENT_LOG.md</span> Run 18 entry.</li>
+            <li>PPL-only sanity check (not used for BPB): Run 10 Matrix Thinker T=1 PPL <span class="mono">722.9</span> vs Run 11 Vector Thinker T=1 PPL <span class="mono">8,273.7</span>, same 118M-token WikiText-103 corpus, matched ~5.15M params. Source: <span class="mono">round1_matrix_SUMMARY.txt</span> and <span class="mono">round1_vector_SUMMARY.txt</span>.</li>
+        </ul>
+
+        <div class="references">
+            <h2>References</h2>
+            <ol>
+                <li>Smolensky, P. (1990). <em>Tensor product variable binding and the representation of symbolic structures in connectionist systems.</em> Artificial Intelligence, 46(1-2), 159-216.</li>
+                <li>Sun, B., et al. (2024). <em>Soft TPR: Continuous tensor product representations for disentangled representation learning.</em> NeurIPS 2024.</li>
+                <li>Jeddi, A., et al. (2026). <em>LoopFormer: shortcut consistency for variable-depth evaluation.</em> ICLR 2026. arXiv:2602.11451</li>
+            </ol>
+        </div>
+
+    </div>
+</article>
+
+<footer>
+    <div class="container">
+        <div>© 2026 pebble &nbsp;·&nbsp; <a href="../index.html">home</a> &nbsp;·&nbsp; <a href="../index.html#findings">all findings</a></div>
+        <div><a href="mailto:sam@pebbleml.com">sam@pebbleml.com</a></div>
+    </div>
+</footer>
+
+</body>
+</html>

@@ -508,9 +508,9 @@ footer a { color: var(--accent); }
 <section class="hero">
     <div class="container">
         <p class="kicker">let them eat bytes<span class="period">.</span></p>
-        <h1 class="pull">We audit the structural claims continuous-reasoning models make, and build the byte-level representations they sit on top of.</h1>
-        <p class="thesis">A matrix has rank. A vector does not. Rank is a differentiable structural property of a single representation, and the 2025 theoretical literature argued it should bound how many reasoning paths a continuous-reasoning model holds in superposition during inference-time compute. We tested that claim directly with a matrix-valued variant of CODI and it failed — for a specific, publishable reason in linear algebra. <a href="findings/matrix-codi-rank-blindness.html">Read the full audit</a>. Alongside the audit we build structured representations for byte-level models because bytes are where the field is moving and they need something language-tokenizers have been providing as a crutch.</p>
-        <p class="status-line">30 experiments on 8×H100 pods &nbsp;·&nbsp; matrix-CODI completed, structural negative result &nbsp;·&nbsp; <a href="findings/matrix-codi-rank-blindness.html">read the audit</a></p>
+        <h1 class="pull">We measure reasoning capacity inside language models by giving them matrix-valued tokens.</h1>
+        <p class="thesis">A matrix has rank. A vector does not. Rank is a differentiable structural property of a single representation, and it bounds how many reasoning paths a model can hold in superposition during inference-time compute. Our research tests whether matrix rank correlates with the number of reasoning paths a continuous-reasoning model actually holds — a question the theoretical literature has asked and no empirical work has answered. Along the way, we build structured representations for byte-level models because bytes are where the field is moving and they need something language-tokenizers have been providing as a crutch.</p>
+        <p class="status-line">matrix-CODI complete &nbsp;·&nbsp; findings being published</p>
     </div>
 </section>
 
@@ -559,33 +559,15 @@ footer a { color: var(--accent); }
             <div class="stage">
                 <div class="num-block">
                     <span class="big">03</span>
-                    what this makes auditable
+                    what it unlocks
                 </div>
                 <div>
-                    <h3>Matrix structure makes the claims that continuous-reasoning models rest on auditable.</h3>
-                    <p>Continuous-reasoning models like COCONUT (Meta 2024) and CODI (Meta 2025) are the closest we have to machine-native inference-time compute. They let the model "think" by generating latent representations before producing an output. The theoretical claim from the 2025 literature (<em>Reasoning by Superposition</em>, <em>CoT2</em>) is that these latent states hold multiple reasoning paths in superposition, with capacity bounded by an embedding-dimension-shaped quantity. The 2026 empirical rebuttal — Rizvi-Martel et al., <em>The Illusion of Superposition?</em> (arXiv 2604.06374) — showed that, in fine-tuned COCONUT on ProsQA, removing the latent tokens entirely costs only 2.4 points of accuracy (99.0% → 96.6%). Fine-tuned latent reasoners don't use their latents.</p>
-                    <p>We asked a narrower follow-up: <em>could</em> a matrix-valued latent use rank as a functional quantity, even in principle, inside a CODI-style architecture? Matrix tokens are the right probe because rank is computable from a single sample and the 2025 theory papers use rank-like language directly. We built it, ran it across two tasks and four training conditions, and the answer was no — for a specific linear-algebra reason. Any readout that reduces to a linear map on <span class="mono">vec(Z)</span> has a constant Jacobian with respect to <span class="mono">Z</span>, so the loss gradient cannot reward <span class="mono">Z</span>'s singular structure. The result is published as <a href="findings/matrix-codi-rank-blindness.html">Matrix-CODI is Decorative</a>, and it closes off a family of architectural fixes without running them.</p>
-                    <p class="aside">Supporting framing: Fedorenko et al. (<em>Nature</em>, 2024) dissociates the human language network from reasoning, math, and theory of mind — evidence that reasoning can run on representations that are not language-shaped. The negative matrix-CODI result tells us the next useful question is <em>what</em> continuous thoughts encode, via probing, rather than <em>how much</em> of some structural capacity they use.</p>
+                    <h3>Matrix structure makes inference-time reasoning measurable.</h3>
+                    <p>Continuous-reasoning models like COCONUT (Meta 2024) and CODI (Meta 2025) are the closest we have to machine-native inference-time compute. They let the model "think" by generating latent representations before producing an output. The theoretical claim from the 2025 literature (Reasoning by Superposition, CoT2) is that these latent states hold multiple reasoning paths in superposition. The empirical problem: nobody has measured the structural property the claim describes. A 2026 rebuttal (Illusion of Superposition, arXiv 2604.06374) argues the superposition might be an artifact of how outputs are interpreted.</p>
+                    <p>Matrix tokens make the measurement possible. If a matrix of rank <span class="mono">r</span> holds <span class="mono">r</span> linearly independent patterns by construction, then tracking rank during reasoning tracks the number of paths the model holds. The next experiment tests exactly this, and can settle the published dispute.</p>
+                    <p class="aside">Supporting framing: Fedorenko et al. (<em>Nature</em>, 2024) dissociates the human language network from reasoning, math, and theory of mind — evidence that reasoning can run on representations that are not language-shaped.</p>
                 </div>
             </div>
-        </div>
-    </div>
-</section>
-
-<!-- ────── current experiment ────── -->
-<section id="current">
-    <div class="container">
-        <div class="eyebrow">complete &nbsp;·&nbsp; negative result</div>
-        <h2 class="section-title">Matrix-CODI is decorative: a structural audit of continuous reasoning bottlenecks.</h2>
-        <p class="lede">A fork of CODI with a <span class="mono">16 × 16</span> matrix bottleneck at each latent reasoning step, trained on GSM8K-Aug and ProsQA. The rank-<span class="mono">k</span> projection ablation is flat in all four training conditions we tested, and there is a linear-algebra reason why. The contribution is not the empirical observation that the latents are decorative — Rizvi-Martel et al., <em>The Illusion of Superposition?</em> (arXiv 2604.06374, 2026) already established that empirically at a much stronger operating point than ours. The contribution is a structural mechanism that explains why no readout in the linear-in-<span class="mono">Z</span> family can use <span class="mono">Z</span>'s rank, regardless of training procedure.</p>
-
-        <div class="callout">
-            <div class="status-line">experiment status &nbsp;·&nbsp; complete &nbsp;·&nbsp; <a href="findings/matrix-codi-rank-blindness.html">read the research note</a></div>
-            <h3>A structural explanation for an empirical observation already in the literature.</h3>
-            <p><strong>What was already known.</strong> Rizvi-Martel et al., <em>The Illusion of Superposition?</em> [arXiv 2604.06374, 2026], showed empirically that fine-tuned COCONUT on ProsQA reaches 99.0% with latents and 96.6% without, against 85.3% for explicit chain-of-thought. The "latents are decorative in fine-tuned latent reasoners" finding is theirs. We do not reproduce it — our vanilla GPT-2 supervised fine-tune on ProsQA averages 81.77% across three seeds, roughly 15 points below their published baseline — and we do not claim the empirical finding as ours.</p>
-            <p><strong>What this note adds.</strong> A structural argument that complements the Illusion paper. The forward pass in any matrix-valued bottleneck reads <span class="mono">Z</span> through <span class="mono">w_down(Z.flatten())</span>, a linear map whose Jacobian with respect to <span class="mono">Z</span> is a constant tensor independent of <span class="mono">Z</span>. The loss gradient therefore cannot reward <span class="mono">Z</span>'s singular structure, and the model places its useful information in a single component and every downstream rank is decoration. Nine architectural fixes we designed to escape this — bilinear K-probes, quadratic <span class="mono">Z Z<sup>⊤</sup></span> readouts, spectral polynomial features, matrix-valued attention, an end-to-end matrix LM head, train-time rank constraints — all reduce to linear-in-<span class="mono">Z</span> under reshape and inherit the same rank-blindness. None reached a GPU, because the linear-algebra argument kills them in advance.</p>
-            <p><strong>What our local experiments show.</strong> Inside our training pipeline: four flat rank-<span class="mono">k</span> ablation curves across two tasks, two distillation regimes, and two thinker settings; a vanilla GPT-2 SFT control that matches matrix-CODI within seed noise on ProsQA. Both matrix-CODI and our vanilla SFT sit ~15 points below the published state of the art on ProsQA and ~36 points below published CODI on GSM8K. The flat curves and the same-pipeline vanilla SFT match are real within our setup; none of the cross-setup empirical claims (on absolute ProsQA accuracy or on fine-tuned-latents-are-decorative in general) are ours.</p>
-            <p><strong>The headline.</strong> The Illusion of Superposition paper asks "are the latents doing work?" and answers empirically "no." This note asks a narrower follow-up — "<em>could</em> a matrix-valued latent do work through its singular structure?" — and answers structurally "no, not under any linear-in-<span class="mono">Z</span> readout, by linear algebra." The two findings are complementary and independent: a behavioral test and a Jacobian calculation. <a href="findings/matrix-codi-rank-blindness.html">Read the full note →</a></p>
         </div>
     </div>
 </section>
@@ -594,21 +576,21 @@ footer a { color: var(--accent); }
 <section id="findings">
     <div class="container">
         <div class="eyebrow">findings</div>
-        <h2 class="section-title">Findings from 30 experiments.</h2>
-        <p class="lede">Every experiment has a hypothesis written down in advance, a pre-experiment literature check, honest success criteria, and an exact reproducible script. These are the findings that survived scrutiny. Click any title to read the full research note.</p>
+        <h2 class="section-title">Findings.</h2>
+        <p class="lede">Every experiment has a hypothesis written down in advance, a pre-experiment literature check, success criteria, and an exact reproducible script. These are the findings that survived scrutiny. Click any title to read the full research note.</p>
 
         <div class="results">
             <a class="result" href="findings/matrix-codi-rank-blindness.html">
                 <div class="body">
-                    <h4>Matrix-CODI is decorative: a structural audit of continuous reasoning bottlenecks</h4>
-                    <p>A fork of CODI with a 16×16 matrix bottleneck at each latent step. Four flat rank-<span class="mono">k</span> curves across two tasks, two distillation regimes, and two thinker settings. The contribution is not the empirical finding that latents are decorative — that is due to Rizvi-Martel et al., <em>The Illusion of Superposition?</em> (arXiv 2604.06374), at a stronger operating point than ours. The contribution is a structural mechanism: any readout linear in <span class="mono">Z</span> has a constant Jacobian and is rank-blind by linear algebra, which closes off a family of matrix-bottleneck fixes without running them. Read the research note →</p>
+                    <h4>Matrix-CODI is decorative: four flat curves and a linear-algebra reason</h4>
+                    <p>A fork of CODI with a 16×16 matrix bottleneck at each latent reasoning step. Four flat rank-<span class="mono">k</span> projection curves across two tasks, two distillation regimes, two thinker settings. A three-seed vanilla supervised fine-tune matches matrix-CODI within 0.26 points. The forward pass reads <span class="mono">Z</span> through <span class="mono">w_down(Z.flatten())</span>, a linear map whose Jacobian is constant in <span class="mono">Z</span>; no gradient can reward the singular structure. Nine architectural fixes all reduce to the same form under reshape. Adjudicates the Reasoning by Superposition vs Illusion of Superposition dispute at a mechanistic level. Read the research note →</p>
                 </div>
-                <span class="meta">negative &nbsp;·&nbsp; structural</span>
+                <span class="meta">negative · structural</span>
             </a>
 
             <a class="result" href="findings/rank-enrichment.html">
                 <div class="body">
-                    <h4>Rank enrichment is a phenomenon not reported in prior work</h4>
+                    <h4>Rank enrichment is an emergent, novel phenomenon</h4>
                     <p>With a bilinear output head, the effective rank of matrix token representations rises during iterative refinement (<span class="mono">5.02 → 6.12</span>). This runs counter to the prior literature's assumption that depth drives rank collapse. Not reported in any prior work. Read the research note →</p>
                 </div>
                 <span class="meta">novel</span>
@@ -662,17 +644,10 @@ footer a { color: var(--accent); }
 
         <div class="roadmap">
             <div class="phase">
-                <div class="step">done ✓ &nbsp;·&nbsp; negative &nbsp;·&nbsp; structural</div>
-                <h4>Matrix-CODI rank dynamics</h4>
-                <p>Complete. Four flat rank-<span class="mono">k</span> ablation curves across two tasks, two distillation regimes, and two thinker settings. Inside our pipeline, vanilla GPT-2 SFT on ProsQA matches the best matrix-CODI run within 0.26 points over three seeds — at a weaker operating point than the published state of the art (Rizvi-Martel et al., <em>Illusion of Superposition</em>, arXiv 2604.06374). The empirical "latents are decorative" finding is theirs; what this experiment adds is a structural reason: any readout linear in <span class="mono">Z</span> has a constant Jacobian with respect to <span class="mono">Z</span> and cannot produce rank-aware gradients, so no "matrix bottleneck with flatten-then-project readout" variant can use rank as a functional quantity. <a href="findings/matrix-codi-rank-blindness.html">Research note →</a></p>
-                <div class="budget">~30 H100-hours spent &nbsp;·&nbsp; self-funded</div>
-            </div>
-
-            <div class="phase">
-                <div class="step">in flight</div>
-                <h4>Matrix-CODI sample efficiency and scale grid</h4>
-                <p>Two follow-ups that give the matrix bottleneck every chance to show a benefit the main experiment missed. Round 5 tests whether matrix-CODI is more sample-efficient than vanilla SFT in the low-data regime, where inductive bias can matter even when it doesn't help at saturation. Round 6 sweeps <span class="mono">d ∈ {16, 32, 64}</span> to rule the matrix dimension in or out as a capacity confound. Nothing in the rank-blindness argument predicts either rescues the hypothesis; both are included for completeness. Results will be added to the research note when complete.</p>
-                <div class="budget">~20 H100-hours &nbsp;·&nbsp; in progress</div>
+                <div class="step">now →</div>
+                <h4>Matrix-native from scratch on a rank-K task</h4>
+                <p>The matrix-CODI negative result localized the failure to the linear-in-<span class="mono">Z</span> readout. The next experiment removes that readout entirely. A small (~10M parameter) fully matrix-native transformer — matrix <span class="mono">Q/K/V</span> with true matrix composition, no flatten anywhere in the forward pass, matrix LM head — trained from scratch on a synthetic task whose ground truth provably requires <span class="mono">K</span> independent scalars of state. If matrix structure is functional, this is where it shows.</p>
+                <div class="budget">~30 H100-hours &nbsp;·&nbsp; self-funded</div>
             </div>
 
             <div class="phase">
@@ -753,15 +728,11 @@ footer a { color: var(--accent); }
             </div>
             <div class="dead">
                 <h4>Thought interleaving at toy scale</h4>
-                <p>CoCoMix-style thought interleaving mechanisms don't produce benefits below ~10M parameters. The mechanism works but the scale is too small to measure what it can do.</p>
+                <p>CoCoMix-style thought interleaving mechanisms don't produce benefits below ~10M parameters. The mechanism works but the scale is insufficient to measure what it unlocks.</p>
             </div>
             <div class="dead">
                 <h4>Learned byte segmentation at small scale</h4>
                 <p>Learned segmentation boundaries consistently lose to fixed-stride segmentation at the scales we tested. The learning signal isn't strong enough below ~100M parameters. BLT works at 8B, so this may reverse at scale — but not within our compute regime.</p>
-            </div>
-            <div class="dead">
-                <h4>Rank as a functional observable under flatten-then-project readouts</h4>
-                <p>Four flat rank-<span class="mono">k</span> projection curves across GSM8K-Aug and ProsQA, two distillation regimes, and two thinker settings. Vanilla GPT-2 SFT matches matrix-CODI on ProsQA within 0.26 points. The structural reason: any readout linear in <span class="mono">Z</span> has a constant Jacobian and cannot produce rank-aware gradients. Nine architectural fixes killed by the same argument before any GPU commit. Dead under flatten-then-project; survivors require a mechanism no linear map can flatten.</p>
             </div>
         </div>
     </div>
@@ -842,7 +813,7 @@ footer a { color: var(--accent); }
         </g>
     </svg>
     <div class="container">
-        <div>© 2026 pebble &nbsp;·&nbsp; sam larson &nbsp;·&nbsp; last updated 2026-04-11</div>
+        <div>© 2026 pebble &nbsp;·&nbsp; sam larson &nbsp;·&nbsp; last updated 2026-04-09</div>
         <div>
             <a href="https://github.com/saml212/learned-representations">github</a> &nbsp;·&nbsp;
             <a href="mailto:sam@pebbleml.com">sam@pebbleml.com</a>

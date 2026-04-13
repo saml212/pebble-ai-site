@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A reading of the field — April 2026 multi-agent literature synthesis across continuous reasoning, JEPA, structured representations, byte-level models, and the neuroscience of language — with one counter-theme against the project's direction.">
+<meta property="og:title" content="A reading of the field, April 2026 — pebble">
+<meta property="og:description" content="Research note: five supporting themes and one counter-theme from a multi-agent literature survey, and what they mean for the next matrix-CODI experiment.">
+<meta property="og:type" content="article">
+<link rel="icon" type="image/svg+xml" href="../assets/pebble.svg">
+<title>A reading of the field, April 2026 — pebble</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #FAF5E7;
+    --text: #1a1a1a;
+    --muted: #5a5a5a;
+    --accent: #8B2E1F;
+    --line: #1a1a1a;
+    --code-bg: #f0e9d3;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.68;
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.mono, code, pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.86em;
+}
+
+a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+a:hover { text-decoration-thickness: 2px; }
+
+.container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 32px;
+}
+
+.sans {
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+/* ────── header ────── */
+header.paper {
+    border-bottom: 1px solid var(--line);
+    padding: 22px 0;
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+header.paper .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 860px;
+}
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: -0.02em;
+}
+header.paper nav a {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.85rem;
+    margin-left: 22px;
+    font-weight: 500;
+}
+header.paper nav a:hover { color: var(--accent); }
+
+/* ────── title block ────── */
+.title-block {
+    padding: 80px 0 60px;
+    border-bottom: 1px solid var(--line);
+}
+.paper-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    margin-bottom: 24px;
+    font-weight: 700;
+}
+h1.paper-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.028em;
+    margin-bottom: 24px;
+}
+.authors {
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+.authors .author {
+    font-weight: 600;
+}
+.affil {
+    color: var(--muted);
+    font-size: 0.92rem;
+    margin-bottom: 10px;
+}
+.date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* ────── body ────── */
+article { padding: 50px 0 40px; }
+
+.abstract {
+    border: 1px solid var(--line);
+    padding: 28px 32px;
+    margin-bottom: 48px;
+    background: var(--bg);
+    position: relative;
+}
+.abstract::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px; right: -1px;
+    height: 3px;
+    background: var(--accent);
+}
+.abstract .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: block;
+}
+.abstract p { margin: 0; font-size: 1rem; line-height: 1.65; }
+
+article h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin: 56px 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+}
+article h2 .num {
+    color: var(--accent);
+    margin-right: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9em;
+}
+article h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 36px 0 14px;
+}
+article p {
+    margin-bottom: 18px;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+article ul, article ol {
+    margin: 0 0 20px 24px;
+    padding: 0;
+}
+article li {
+    margin-bottom: 10px;
+    line-height: 1.65;
+}
+article ul { list-style: none; }
+article ul li { padding-left: 18px; position: relative; }
+article ul li::before {
+    content: '▪';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+}
+
+/* ────── code blocks ────── */
+pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    padding: 18px 22px;
+    margin: 24px 0;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+code {
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border: 1px solid var(--line);
+    font-size: 0.85em;
+}
+pre code {
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+/* ────── figures and tables ────── */
+figure {
+    margin: 32px 0;
+    border: 1px solid var(--line);
+    padding: 24px;
+    background: var(--bg);
+}
+figcaption {
+    font-size: 0.86rem;
+    color: var(--muted);
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--line);
+    font-family: 'Space Grotesk', sans-serif;
+    line-height: 1.55;
+}
+figcaption .fig-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-right: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.94rem;
+}
+th, td {
+    border: 1px solid var(--line);
+    padding: 12px 16px;
+    text-align: left;
+    vertical-align: top;
+}
+th {
+    background: var(--code-bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+}
+td .num { font-family: 'JetBrains Mono', monospace; font-size: 0.94em; }
+
+/* ────── ascii plot ────── */
+.ascii-plot {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    padding: 24px 32px;
+    margin: 24px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.35;
+    overflow-x: auto;
+    white-space: pre;
+}
+
+/* ────── convergence diagram ────── */
+.convergence {
+    border: 1px solid var(--line);
+    background: var(--code-bg);
+    padding: 28px 24px;
+    margin: 24px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--text);
+}
+
+/* ────── callouts ────── */
+.takeaway {
+    border-left: 4px solid var(--accent);
+    padding: 14px 0 14px 24px;
+    margin: 28px 0;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+.takeaway .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* ────── references ────── */
+.references {
+    margin-top: 56px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+}
+.references h2 {
+    border: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+.references h3 {
+    margin: 28px 0 10px;
+    font-size: 0.88rem;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+}
+.references ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: ref;
+}
+.references li {
+    counter-increment: ref;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin-bottom: 14px;
+    padding-left: 44px;
+    position: relative;
+}
+.references li::before {
+    content: '[' counter(ref) ']';
+    position: absolute;
+    left: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+/* ────── footer ────── */
+footer {
+    padding: 60px 0 64px;
+    border-top: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 80px;
+}
+footer .container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    max-width: 860px;
+}
+footer a { color: var(--accent); }
+
+/* ────── responsive ────── */
+@media (max-width: 720px) {
+    body { font-size: 17px; }
+    .container { padding: 0 24px; }
+    .title-block { padding: 56px 0 44px; }
+    h1.paper-title { font-size: 1.8rem; }
+    article h2 { font-size: 1.35rem; }
+    .abstract { padding: 24px; }
+    .ascii-plot { font-size: 0.68rem; padding: 18px 20px; }
+    .convergence { font-size: 0.66rem; padding: 18px 16px; }
+    header.paper nav a { margin-left: 12px; font-size: 0.78rem; }
+    header.paper .container { flex-wrap: wrap; gap: 10px; }
+}
+</style>
+</head>
+<body>
+
+<header class="paper">
+    <div class="container">
+        <a href="../index.html" class="logo">
+            <svg width="19" height="24" viewBox="0 0 189.19 244.18" aria-hidden="true">
+                <path fill="#8B2E1F" d="M154.14,12.56C111.33-20.28,21.86,11.88,3.07,101.86c-17.52,83.86,42.97,164.41,108.14,136.78,68.89-29.2,112.08-173.04,42.94-226.08ZM103.14,218.13C49.43,240.91-.41,174.53,14.03,105.43,29.52,31.28,103.24,4.78,138.52,31.84c56.99,43.71,21.39,162.22-35.38,186.29Z"/>
+            </svg>
+            pebble
+        </a>
+        <nav>
+            <a href="../index.html">← home</a>
+            <a href="../index.html#findings">findings</a>
+            <a href="../index.html#roadmap">roadmap</a>
+            <a href="mailto:sam@pebbleml.com">contact</a>
+        </nav>
+    </div>
+</header>
+
+<section class="title-block">
+    <div class="container">
+        <div class="paper-meta">research note &nbsp;·&nbsp; finding 05 of 06</div>
+        <h1 class="paper-title">A reading of the field, April 2026</h1>
+        <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 18px;">literature synthesis · five supporting themes + one counter-theme · single reader</p>
+        <p class="authors"><span class="author">Sam Larson</span></p>
+        <p class="affil">pebble, San Francisco</p>
+        <p class="date">April 2026 &nbsp;·&nbsp; sam@pebbleml.com</p>
+    </div>
+</section>
+
+<article>
+    <div class="container">
+
+        <div class="abstract">
+            <span class="label">abstract</span>
+            <p>This note is a literature synthesis, not an experiment. In early April 2026 the author ran a multi-agent research session across eleven topics in parallel — continuous reasoning, JEPA, pure-sensor SSL, structured representations, byte-level models, long-context methods, the neuroscience of language, and several adjacent threads — and collected the findings into a reading of the field's recent direction. Five supporting themes converged: non-language, non-autoregressive representation learning is gaining momentum at scale (JEPA plus pure-sensor SSL); discrete vocabularies have lost the text race while winning in vision; the structure-versus-scale debate is unresolved but pervasive structure retains a compute-efficiency advantage in the measurements that exist; the neuroscience case for non-linguistic cognition is now mainstream; and continuous reasoning research is maturing around a small set of published baselines without measuring any structural property of the thoughts it produces. A sixth, counter-theme cuts the other way: at language-modeling compute parity, vector transformers still beat matrix-valued models in this project's own logs, and the synthesis does not escape that constraint. The five supporting themes point to a specific gap the matrix-CODI experiment targets — no published work has measured the rank of continuous thoughts as a structural correlate of reasoning capacity — while the counter-theme sets a hard boundary on how much the reading can justify on its own. This is a single reader's reading of a large literature on a fixed date; the confirmation-bias risk is flagged directly in Section 05.</p>
+        </div>
+
+        <h2><span class="num">01</span>Background</h2>
+
+        <p>A one-person lab has a compute budget measured in H100-hours and a time budget measured in weeks per experiment. Direction-setting — what to build next, what to drop, what to defer — has a disproportionate effect on the final output compared with the same decision inside a well-resourced group, because a single wrong direction consumes a larger fraction of the total work. Reading the field carefully is the cheapest return on time available at this scale.</p>
+
+        <p>The other four notes in this series (<a href="rank-enrichment.html">finding 01</a> through <a href="parameter-efficiency.html">finding 04</a>) report single-seed observations from the Matrix Thinker experiments. They are load-bearing for the project's empirical claims, but they were produced under a specific research framing that took shape in mid-2025 and has been under continuous attack since. The framing has narrowed over time. In its earliest form the project argued that matrix-valued tokens would produce cross-domain generalization through structural geometry; an attack pass in April 2026 showed that framing was wrong on six independent grounds (reshape equivalence, distribution mismatch, parameter confound, scale, reviewer failure mode, domain alignment). What survived is a narrower question about rank as a structural correlate of reasoning capacity in continuous-thought models. This note reports the literature reading that informed the narrowing and that the matrix-CODI experiment now sits inside.</p>
+
+        <p>The reason to publish a synthesis rather than keep it internal is that the notes in this series are internally cross-referenced and the reading of the field is the context against which the single-seed observations should be interpreted. Without it, a reader of the other four notes is seeing a sequence of small experimental results with no account of why we ran them in that order and not another. With it, the sequence becomes a bet against a specific open question in the continuous-reasoning literature, placed against a reading of where the field's most interesting threads are pointing.</p>
+
+        <h2><span class="num">02</span>Method</h2>
+
+        <p>In April 2026, the author ran a multi-agent research session using Claude Code subagents. Each subagent was dispatched to survey a specific topic (JEPA, pure-sensor SSL, discrete vocabularies, and so on) by reading arXiv, major conference proceedings, and lab blog posts. The subagents returned structured reports that the author then synthesized into this note. This is not a systematic review in the clinical-research sense — there was no pre-registered search protocol, no blinding, and no independent validation of the returned paper lists. The agents may have missed relevant papers or hallucinated references; where possible, citations were cross-checked against the project bibliography (<span class="mono">references.md</span>). ML and AI topics carried a recency constraint of the last six to twelve months; mature fields like neuroscience and information theory had no recency cap. The eleven topics were:</p>
+
+        <ol>
+            <li>Continuous-reasoning models after COCONUT</li>
+            <li>JEPA family and LeCun's post-Meta direction</li>
+            <li>Pure-sensor / language-free representation learning</li>
+            <li>Structured representations beyond flat vectors (hyperbolic, Clifford, TPR, PHM)</li>
+            <li>Byte-level language models and the post-tokenizer world</li>
+            <li>Long-context and memory-sparse attention methods</li>
+            <li>Rank and dimensionality measurement in transformers</li>
+            <li>Discrete vocabularies and modern VQ</li>
+            <li>Auxiliary-loss and multi-token prediction methods</li>
+            <li>Neuroscience of language and non-linguistic cognition</li>
+            <li>Test-time compute and energy-based refinement</li>
+        </ol>
+
+        <p>For each topic the agents returned published papers (with arXiv or venue identifiers), code availability where relevant, the central empirical or theoretical claim, the strongest published critique, and what the topic does <em>not</em> answer. The last item is the part that matters for a synthesis whose purpose is finding gaps. The outputs are archived under <span class="mono">research/</span> in the project repository; the session transcripts are internal.</p>
+
+        <p>Two caveats up front. The sampling frame is not exhaustive — the agents searched arXiv, major venue proceedings, and a handful of lab and author pages, with a bias toward English-language work and toward topics the project was already thinking about. The reader of the outputs is one person. There is no independent validation of the synthesis below, and the reader is the same person who chose the topics, framed the queries, and is now building the experiment the synthesis conveniently supports. Section 05 (Limitations) returns to this directly.</p>
+
+        <h2><span class="num">03</span>Themes</h2>
+
+        <p>The six themes below are five supporting themes plus one counter-theme. The supporting themes are the ones that six or more cited papers from the April 2026 reading converged on. The counter-theme (3.6) is a result from this project's own experiment log that cuts against the supporting reading and is included so the synthesis is not a one-sided selection. Several other threads were investigated and did not reach the bar for either category (energy-based refinement, test-time training, long-context sparse attention, hypercomplex multi-modal fusion); they are noted in Section 05.</p>
+
+        <h3>3.1 Non-language, non-autoregressive representation learning at scale</h3>
+
+        <p>Two adjacent threads — JEPA family methods and pure-sensor self-supervised learning — tell the same story from different angles: large-scale representation learning without language supervision and without next-token prediction is becoming a serious alternative to the autoregressive default rather than a fringe research program. The merge is intentional; the two sub-threads reinforce each other at the theme level.</p>
+
+        <h4>3.1.a JEPA momentum</h4>
+
+        <p>Joint-embedding predictive architectures moved from a within-Meta research program to a broader direction over the last twelve months. LeJEPA <a href="#ref-lejepa">[1]</a> (November 2025) addressed JEPA's long-standing representation-collapse problem via Sketched Isotropic Gaussian Regularization — a single hyperparameter, no stop-gradient, no EMA, proven optimal target distribution under linear, k-NN, and kernel probes. Twenty lines of code, drops in. This removes the "JEPA is brittle" objection that was the standard reason not to build on top of it. LLM-JEPA <a href="#ref-llmjepa">[2]</a> (September 2025) added JEPA auxiliary losses to standard LLM training and reports modest but statistically significant gains on a small set of benchmarks including GSM8K, showing that JEPA composes with the standard autoregressive recipe rather than replacing it.</p>
+
+        <p>V-JEPA 2 <a href="#ref-vjepa2">[3]</a> (June 2025) scaled video JEPA to 1.2B parameters and reported 77.3 top-1 on Something-Something-v2, with robot pick-and-place scores that put it close to end-to-end trained policies on novel objects. V-JEPA 2.1 <a href="#ref-vjepa21">[4]</a> (March 2026) added dense features and hierarchical self-supervision. VL-JEPA <a href="#ref-vljepa">[5]</a> (December 2025) predicts continuous text embeddings in place of autoregressive tokens and matches CLIP and SigLIP with roughly half the trainable parameters. LeWorldModel <a href="#ref-lewm">[6]</a> (March 2026) is the first end-to-end JEPA from raw pixels with no stop-grad, no EMA, and no frozen encoders — 15M parameters on a single GPU, using LeJEPA's SIGReg unchanged. WavJEPA <a href="#ref-wavjepa">[7]</a> extends the recipe to raw audio waveforms and is the closest existing template for a byte-level JEPA, which this reading confirmed does not yet exist in the public literature as of April 2026.</p>
+
+        <h4>3.1.b Pure-sensor SSL matches language-supervised SSL at scale</h4>
+
+        <p>For several years the default reading of visual representation learning was that language supervision (CLIP-style contrastive training on image-text pairs) gave a decisive advantage over pure self-supervised methods trained on images alone. Three results from 2025 shift that reading.</p>
+
+        <p>DINOv3 <a href="#ref-dinov3">[8]</a> (August 2025) is a ViT-7B trained on 1.7B images with no text and no labels. It is the first SSL model to beat weakly-supervised peers on the benchmarks it reports, including ImageNet classification, and its Gram anchoring technique addresses the dense-feature degradation that had limited earlier SSL models at scale. Web-SSL <a href="#ref-webssl">[9]</a> (April 2025, Meta) is the controlled comparison: SSL and CLIP trained on identical MetaCLIP data, scaled to 7B parameters, and the visual SSL model matches CLIP on VQA and classic vision benchmarks. The authors' framing — that CLIP's prior advantage came from data rather than from language supervision — is the clean version of the result. The follow-up comparison paper <a href="#ref-dataorlang">[10]</a> (October 2025, EMNLP Findings) found that CLIP wins text-intensive and fine-grained tasks while DINO wins vision-centric and low-level tasks, framing language supervision as a narrow bias toward nameable categories rather than a general advantage.</p>
+
+        <p>The finding that matters most for a project that wants to build machine-native representations comes from an unexpected direction. An October 2025 paper on object binding in vision transformers <a href="#ref-binding">[11]</a> probed patch embeddings with an IsSameObject classifier and found above 90% accuracy in DINOv2, DINO, and MAE, and near-chance accuracy in supervised ViTs. Object binding — a property the interpretability literature had argued is necessary for compositional reasoning — arises from self-supervision specifically, not from the backbone. If binding is not downstream of language supervision, then the claim that language is a prerequisite for compositional representations in neural networks is harder to defend.</p>
+
+        <h3>3.2 Discrete vocabularies have lost the text race</h3>
+
+        <p>The single cleanest data point in the synthesis comes from Meta's public research trajectory. Meta's public research direction moved from Chameleon <a href="#ref-chameleon">[12]</a> (a VQ-tokenized multimodal model released in 2024) to BLT <a href="#ref-blt">[13]</a> (byte-level, tokenizer-free, released late 2024/2025, with entropy-based dynamic patching that matches Llama 3 at 8B scale with 50% fewer inference FLOPs). Both papers are public; no formal deprecation has been announced. Bolmo <a href="#ref-bolmo">[14]</a> (AI2, December 2025) retrofits existing tokenized models to byte-level and reports a +16.5% absolute STEM improvement over BLT 7B, suggesting the advantage is not a one-shot BLT-specific trick.</p>
+
+        <p>The picture is different in vision and multimodal work. Emu3.5 <a href="#ref-emu35">[15]</a> (34.1B, October 2025) is the largest native-discrete-token multimodal model and uses separate text BPE and visual VQ codebooks. Modern VQ methods (FSQ <a href="#ref-fsq">[16]</a>, BSQ <a href="#ref-bsq">[17]</a>, MAGVIT-v2 <a href="#ref-magvit2">[18]</a>, SimVQ, UniTok <a href="#ref-unitok">[19]</a>) continue to improve on codebook utilization and representation quality. The cross-modal picture is "VQ won vision, is contested for audio, and lost text." For a project that cares about text and language-based reasoning, the text column is the one that matters, and the arrow is pointing away from learned discrete vocabularies. MBLM <a href="#ref-mblm">[20]</a>, EvaByte <a href="#ref-evabyte">[21]</a>, MambaByte <a href="#ref-mambabyte">[22]</a>, MEGABYTE <a href="#ref-megabyte">[23]</a>, and bGPT <a href="#ref-bgpt">[24]</a> populate the byte-level side of the same move.</p>
+
+        <h3>3.3 Structure-vs-scale is unresolved, but pervasive structure keeps winning when it is pervasive</h3>
+
+        <p>HELM <a href="#ref-helm">[25]</a> (He et al., NeurIPS 2025) is the first billion-parameter fully hyperbolic LLM. All operations live on the Lorentz manifold via space-like-only operations plus constraint reconstruction. It reports gains of 0.5 to 2.3 points over Euclidean baselines on MMLU and ARC — small absolute deltas on near-chance benchmarks, where a 2-point move from 23% to 25% on MMLU (random is 25%) is a much weaker signal than a 2-point move at 70% accuracy. The headline that matters is not the margin but the architectural commitment: no half-measures, no Euclidean escape hatch, no fallback layer. It is an existence proof that pervasive structured architecture trains stably at the scale where people care about scaling arguments. The headline is not that it wins the benchmark.</p>
+
+        <p>Brehmer et al. <a href="#ref-brehmer">[26]</a> (TMLR 2025) is the companion result on the structure side. The paper is often misread as a pro-scaling result because it finds that the gap between equivariant and non-equivariant models shrinks at some budgets, but the careful reading is that equivariant models maintain roughly a 2× compute-efficiency advantage at every budget tested across 10^16 to 10^19 FLOPs. The advantage does not close; the claim that scale alone absorbs structure does not survive the measurement.</p>
+
+        <p>The counterweight on the other side is the Redhardt, Akram, Schug NeurIPS 2025 spotlight <a href="#ref-scaling">[27]</a>, which shows that synthetic MLPs achieve compositional generalization given full task-space coverage — the strongest scaling-side result in the literature at the moment. The limitation is that the synthetic setup does not transfer cleanly to language. Wilson's "Deep Learning is Not So Mysterious" <a href="#ref-wilson">[28]</a> gives the PAC-Bayes framing that overparameterization plus a soft simplicity prior suffices without architectural restriction; HELM and Brehmer are the existence proofs that the argument does not carry all the way when the restriction runs through the whole stack and the evaluation is careful.</p>
+
+        <p>The pattern the synthesis extracts: structure wins when it is pervasive across the stack (HELM), loses or appears to lose when it is bolted on to a mostly unstructured backbone, and the Brehmer measurement shows the advantage is stable at scale rather than washing out. Half-commitments do not work. This matters for pebble's direction because the Matrix Thinker stack is structured at the token level and the attention level but not, currently, at the embedding table level or the output head in the byte-level configurations — which is one of the things the narrowed hypothesis forces us to examine.</p>
+
+        <h3>3.4 The neuroscience case for non-linguistic cognition is mainstream</h3>
+
+        <p>The Fedorenko, Piantadosi, and Gibson paper "Language is primarily a tool for communication rather than thought" <a href="#ref-fedorenko">[29]</a> appeared in <em>Nature</em> in 2024 and, more than any single result in this synthesis, changed the ambient assumption a project like this operates under. fMRI dissociates the language network from reasoning, math, theory of mind, and music. The underlying dissociation has been reported for years in the cognitive-neuroscience literature; what changed in 2024 was the venue and the review-level framing. "Language is the medium of thought" is a contested claim rather than a default.</p>
+
+        <p>Zaslavsky et al. <a href="#ref-zaslavsky">[30]</a> (PNAS 2018) is an information-theoretic complement, though a narrower one than it is sometimes taken to be. The paper's result is specific to color naming: languages' color-term systems cluster near the information bottleneck optimum for the task of communicating color categories, which is evidence that languages evolve toward a communication-efficient coding for the task they are being used on. The paper is not a general theorem about inter-brain channel capacity, and it does not license the broader "language is optimized for a ~50 bit/s brain-to-brain channel" framing that appears in some readings. Taken at what the paper shows, it supports a narrower point: human language evolved under communication pressure and reflects that pressure at the lexicon level. Machines face a different optimization landscape, so the lexicon-level efficiencies do not automatically transfer.</p>
+
+        <p>Below the language-layer claim there is a set of now-well-established neural primitives: grid cells as a general substrate for abstract reasoning <a href="#ref-moser">[31]</a> <a href="#ref-gridabstract">[32]</a>; attractor manifolds and integrator networks <a href="#ref-chaudhuri">[33]</a> <a href="#ref-khona">[34]</a>; sparse coding in visual cortex <a href="#ref-olshausen">[35]</a>; predictive coding <a href="#ref-raoballard">[36]</a> and the free-energy framework <a href="#ref-friston">[37]</a> <a href="#ref-activeinference">[38]</a>. None of these primitives are linguistic. The <em>Trends in Cognitive Sciences</em> 2024 review on the dimensionality of cognition <a href="#ref-dimcog">[39]</a> and the <em>Journal of Neuroscience</em> February 2025 paper on PFC dimensionality and cognitive control <a href="#ref-pfcdim">[40]</a> report that the prefrontal cortex deploys a gradient of representational dimensionality across regions, and that dimensionality collapses on error trials. The brain has an observable rank-like quantity that tracks task difficulty and cognitive success. We cite this as motivation, not as mechanism: the point is that the "reasoning has a measurable structural correlate" framing has precedent on the biological side.</p>
+
+        <h3>3.5 Continuous reasoning research is maturing without measuring structure</h3>
+
+        <p>The continuous reasoning literature has a clear lineage. COCONUT <a href="#ref-coconut">[41]</a> (Hao et al., Meta, ICLR 2025) established the setup: feed the last hidden state back as the next input embedding, use a curriculum to replace text reasoning with continuous thoughts, measure on GSM8K and ProsQA. COCONUT reported GSM8K 34.1% and ProsQA 97.0%. CODI <a href="#ref-codi">[42]</a> (Shen et al., EMNLP 2025) is the strongest successor: joint teacher-student via shared weights, L1 distillation at the ":" token across all layers, and simpler training with no curriculum. CODI reports GSM8K 43.7% against CoT 44.1% — effectively closing the gap to explicit chain-of-thought. Public code at github.com/zhenyi4/codi, which is the codebase pebble's matrix-CODI experiment will fork from.</p>
+
+        <p>CoT2 <a href="#ref-cot2">[43]</a> (Gozeten et al., ICLR 2026) is the closest published prior art for the rank-superposition argument. It proves that parallelism in continuous chain-of-thought scales with embedding dimension via an existence construction (a 1-layer transformer with an MoE MLP solving MNNS), and tests dimension thresholds empirically through accuracy curves. The paper never measures rank or any structural property. Its claim about parallelism is validated indirectly through task-success curves. CoLaR <a href="#ref-colar">[44]</a>, MarCos <a href="#ref-marcos">[45]</a>, SIM-CoT <a href="#ref-simcot">[46]</a>, PCCoT <a href="#ref-pccot">[47]</a>, and the survey <a href="#ref-latentreasoning">[48]</a> populate the field around it. Emergence of Superposition <a href="#ref-emergenceof">[49]</a> (September 2025) studies training dynamics of continuous CoT on graph reachability and proves that an index-matching logit grows then saturates, but again does not measure rank. Reasoning by Superposition <a href="#ref-reasoningby">[50]</a> (Zhu et al., May 2025) is the theoretical paper whose hand-designed continuous thoughts <em>define</em> the superposition hypothesis — it sets <span class="mono">t_c = (1/√|V_c|) Σ u_v</span> over BFS frontier vertices, so rank equals frontier size by construction — but never measures whether trained models realize this rank.</p>
+
+        <p>The 2026 rebuttal, The Illusion of Superposition <a href="#ref-illusion">[51]</a>, argues that fine-tuned COCONUT reaches 96.6% <em>without any latent tokens</em> and that entity-probes show no stepwise computation. The superposition claim is contested. Neither side of the dispute has produced a direct structural measurement of the thoughts themselves. The theorists define superposition and never measure it. The dimensional-collapse work (Dong et al. <a href="#ref-dongrank">[52]</a>, the 2025 work on attention-output rank collapse <a href="#ref-dimcollapse">[53]</a>, rank-structure in time-series transformers <a href="#ref-rankts">[54]</a>) measures rank in transformer backbones but not in reasoning models. The interpretability work on chain-of-thought uses feature dictionaries and entity probes, not geometric rank. This is the gap the matrix-CODI experiment targets.</p>
+
+        <h3>3.6 Counter-theme: scaling continues to win on text, and matched-FLOP comparisons still favor vector transformers</h3>
+
+        <p>The five themes above are written as evidence for the project's direction. A synthesis that only collects support functions as an argument in literature-review clothing. The clearest result cutting the other way belongs in the same section as the supporting ones, where the reader can see it, rather than in a footnote.</p>
+
+        <p>Scaling continues to win on text. Structured-architecture gains in the recent literature are either at small scale or on narrow benchmarks. At language-modeling compute parity — matched FLOPs rather than matched parameters — vector transformers still beat matrix-valued models in the measurements this project has run. The relevant internal data point is Run 14 in <span class="mono">EXPERIMENT_LOG.md</span>: LoopFormer (vector baseline) reaches 0.87 BPB, Matrix Thinker reaches 1.67 BPB, on the same dataset, at matched FLOPs. The parameter-efficiency note (<a href="parameter-efficiency.html">finding 04</a>) reports the same ordering from the other angle. On the scaling side of the literature the strongest result is Redhardt, Akram, and Schug's NeurIPS 2025 Spotlight <a href="#ref-scaling">[27]</a>, which shows synthetic MLPs achieving compositional generalization from full task-space coverage without architectural constraints. Brehmer et al. <a href="#ref-brehmer">[26]</a> is often misread as pro-scaling; a careful reading places it on the pro-structure side at the efficiency margin, but it does not overturn the matched-FLOP text result: the structured model wins per-FLOP, the unstructured model still wins on the downstream loss at the FLOP budgets being compared.</p>
+
+        <p>The synthesis does not escape this constraint. Themes 3.1 through 3.5 are a reading of directions the field is exploring; theme 3.6 is a reading of what the current matched-FLOP comparisons show. The matrix-CODI experiment is designed to answer a structural question about continuous thoughts, not to close the matched-FLOP gap. If the narrowed hypothesis (rank as a structural correlate of reasoning capacity) holds, it is evidence for a specific interpretability claim; it does not by itself overturn the LoopFormer result. A reader who weights theme 3.6 heavily should expect the matrix direction to remain a research bet rather than a production recipe, and should expect pebble to iterate the byte-level JEPA path and the auxiliary-loss path as hedges against the matrix direction failing.</p>
+
+        <h2><span class="num">04</span>Synthesis</h2>
+
+        <p>The five supporting themes point in one direction; the counter-theme sets a boundary on how far that direction can travel unaided. A small visual to make the pattern legible:</p>
+
+        <figure>
+            <div class="convergence">  theme                                       →  reading
+  ─────────────────────────────────────────────────────────────────────
+  [3.1]  non-language, non-AR SSL at scale     →  language is not required
+         (JEPA + pure-sensor, merged)
+  [3.2]  discrete vocab lost text              →  bytes are the text path
+  [3.3]  pervasive structure wins per-FLOP     →  commit fully or not at all
+  [3.4]  non-linguistic cognition mainstream   →  thinking and talking differ
+  [3.5]  continuous reasoning maturing, but    →  measure rank. nobody has.
+         nobody measures structure
+  ─────────────────────────────────────────────────────────────────────
+  [3.6]  counter-theme: matched-FLOP           →  matrix approach has not yet
+         vector transformers still beat           closed the language-modeling
+         matrix-valued models on text            loss gap (Run 14, 0.87 vs 1.67)
+
+                                ▼
+
+    narrowed hypothesis: in a matrix-valued continuous-reasoning model,
+    the effective rank of a thought matrix at step t correlates with the
+    number of distinct reasoning paths held at that step.
+
+    scope: the hypothesis is about a structural correlate of reasoning,
+    not about winning matched-FLOP language-modeling loss. theme 3.6
+    sets the boundary.
+
+                                ▼
+
+                  matrix-CODI rank dynamics experiment
+</div>
+            <figcaption><span class="fig-label">fig 1</span>Five supporting themes and one counter-theme. The supporting themes each point to the same direction the project was already heading. The counter-theme (3.6) reports what the matched-FLOP comparisons in this project's own experiment log show, and is the reason the matrix-CODI experiment is framed as a structural measurement rather than a matched-FLOP race.</figcaption>
+        </figure>
+
+        <p>The narrowed hypothesis has three parts, stated in the precise form used in <span class="mono">STATE.md</span>:</p>
+
+        <ul>
+            <li><strong>H1 (correlation).</strong> In a continuous-reasoning language model with matrix-valued thoughts, the effective rank of a thought matrix at reasoning step <span class="mono">t</span> correlates monotonically with the number of distinct reasoning paths held in superposition at that step. For tasks with known frontier sizes, Spearman correlation <span class="mono">ρ &gt; 0.3</span> at <span class="mono">p &lt; 0.01</span>.</li>
+            <li><strong>H2 (capacity bound).</strong> Accuracy degrades when the number of required reasoning paths exceeds the matrix dimension <span class="mono">d</span>. A <span class="mono">d × d</span> matrix can correctly hold at most <span class="mono">d</span> linearly independent reasoning paths.</li>
+            <li><strong>H3 (causation).</strong> Forced low-rank projection of the thought matrix to rank <span class="mono">k &lt; |frontier|</span> causes accuracy degradation in proportion to <span class="mono">|frontier| − k</span>. This rules out the alternative explanation that rank is a side effect rather than the mechanism.</li>
+        </ul>
+
+        <p>The position the hypothesis sits in is narrow and specific. CoT2 defines a capacity bound in dimensional terms without measuring structure. Reasoning by Superposition hand-designs thoughts whose rank equals frontier size by construction and never tests trained models. The Illusion of Superposition argues the superposition story is empirically empty. Dimensional-collapse work measures rank in transformer backbones, not in reasoning loops. No published work simultaneously (a) trains a reasoning model, (b) measures the rank of its continuous thoughts, and (c) tests whether that rank causally tracks reasoning capacity. This is a single-experiment gap. Two days of code work, roughly two hours of compute on 8×H100, and the gap is closed in one direction or the other. Either the correlation and the causal ablation hold, in which case Reasoning by Superposition has a structural correlate and the dispute with The Illusion of Superposition has a falsifiable resolution, or they do not hold, in which case the Illusion rebuttal wins and pebble reframes. Both outcomes are publishable, and neither overturns theme 3.6 on its own — the structural measurement is orthogonal to the matched-FLOP loss comparison.</p>
+
+        <p>The second-order reading is that the four other notes in this series (rank enrichment, output-head dynamics, outer-product embedding, parameter efficiency) are all load-bearing for whether the matrix-CODI experiment is worth running. Rank enrichment and output-head dynamics establish that rank as measured on matrix tokens in iterative refinement is a non-trivial observable whose trajectory depends on the read-out. The outer-product embedding note establishes that the rank-1 starting point gives a low T=1 BPB at matched parameters in a direction that has held across three comparisons. The parameter-efficiency note establishes that the matrix projections the experiment uses are cheap enough in parameter terms to allocate a meaningful thinking block to a small model. None of the four notes alone justifies the matrix-CODI direction; the synthesis of the four with the field reading is what puts the experiment on the critical path.</p>
+
+        <p>The project's other avenues — byte-level JEPA with SIGReg, contextualized matrix embeddings, scaling to 10M+ parameters on standard benchmarks — are downstream of this first test. If the rank measurement on matrix-CODI produces signal, they become the scaling story. If it does not, at least one of them (likely the byte-level JEPA path, which draws directly on LeJEPA and WavJEPA) becomes the new lead and the matrix framing is retired to an auxiliary loss inside a JEPA-style training loop.</p>
+
+        <div class="takeaway">
+            <span class="label">the reading</span>
+            Five threads of recent work — non-language and non-autoregressive SSL at scale (JEPA and pure-sensor merged), bytes-over-vocab for text, pervasive structure retaining a per-FLOP advantage, neuroscience of non-linguistic cognition, and continuous-reasoning maturity without structural measurement — converge on the direction the pebble project was already heading. One counter-thread (theme 3.6) cuts the other way: at matched FLOPs on text, vector transformers still beat matrix-valued models in this project's own logs. The gap theme 3.5 identifies is narrow and specific: measure the rank of continuous thoughts as a structural correlate of reasoning capacity. The matrix-CODI experiment is built to close that gap, not to overturn the matched-FLOP result.
+        </div>
+
+        <h2><span class="num">05</span>Limitations</h2>
+
+        <ul>
+            <li><strong>Date-bounded reading.</strong> The synthesis reflects the literature as of April 9 2026. Several of the cited papers are weeks or months old; the field will have moved by the time this note is read. The JEPA direction and the continuous-reasoning direction in particular have been moving fast enough that a six-month-later synthesis would likely reorder several of the themes.</li>
+            <li><strong>Single reader, no independent validation.</strong> The synthesis was produced by one person running multi-agent research sessions and collating the outputs. There is no second reader, no adversarial review, no structured consensus procedure. Where the literature is contested (the superposition dispute between CoT2/Reasoning-by-Superposition and Illusion-of-Superposition is the clearest example), the reading is the author's judgment call rather than a community consensus.</li>
+            <li><strong>Confirmation bias is the limitation that worries us most.</strong> The author chose the eleven topics, framed the subagent queries, read the subagent outputs, and wrote the thematic groupings — and is the same person building the experiment the synthesis supports. The selection is not blind to the project's direction. Concretely, a reading that led to "build something other than matrix-CODI" is not reachable from the workflow that produced this note, and that should be priced in. Three specific counter-observations name the shape of the bias in the current literature: (a) Brehmer et al. TMLR 2025 <a href="#ref-brehmer">[26]</a> shows that data augmentation substantially closes the equivariance gap at scale, which weakens the "pervasive structure wins" reading of theme 3.3 if the gap is closed by simpler means; (b) Redhardt, Akram, and Schug's NeurIPS 2025 Spotlight <a href="#ref-scaling">[27]</a> shows compositional generalization emerging from scale alone in synthetic MLPs, which weakens the "structure is necessary for compositionality" framing that animates several of the themes; and (c) this project's own Run 14 (LoopFormer 0.87 BPB vs Matrix Thinker 1.67 BPB at matched FLOPs, in <span class="mono">EXPERIMENT_LOG.md</span>) is an empirical loss against the matrix direction on the metric that matters most for text language modeling. The mitigation is partial: the attack pass in April 2026 (<span class="mono">research/hypothesis-attack-april2026.md</span>) killed the earlier and broader version of the hypothesis on six grounds, the narrowed hypothesis is the residue of that attack, and the matrix-CODI experiment is structured so that either direction of the result is informative. If the correlation and causal ablation both fail, the reading of theme 3.5 is wrong and we reframe. None of this eliminates the bias. It limits the damage it can do.</li>
+            <li><strong>Sampling frame.</strong> The agents searched arXiv, major venue proceedings, and a handful of author and lab pages. They did not systematically search workshop papers, non-English publications, or pre-2024 work outside the named reference lists. A result we missed that contradicts the synthesis would most likely come from one of those sources.</li>
+            <li><strong>Threads investigated and excluded.</strong> Energy-based transformers <a href="#ref-ebt">[55]</a>, test-time training <a href="#ref-ttt">[56]</a>, long-context sparse attention (Native Sparse Attention <a href="#ref-nsa">[57]</a>, DeepSeek Sparse Attention <a href="#ref-dsa">[58]</a>, Kimi Linear <a href="#ref-kimi">[59]</a>), and hypercomplex multi-modal fusion were investigated and did not reach the bar for a theme. This is not the same as unimportance — several of them may matter a lot for the project's later stages. They are flagged so the absence is deliberate rather than ignorance.</li>
+            <li><strong>Not an experiment.</strong> This note reports a reading of a literature, not new empirical results. It should be weighed as such. The other four notes in this series report measurements the author made on models the author trained; this note reports the author's reading of papers written by other people. The epistemic status is different and the reader should treat it as different.</li>
+            <li><strong>Paper provenance.</strong> Several of the 2026 papers cited here (Illusion of Superposition, LeWorldModel, V-JEPA 2.1, HyperET, ByteFlow, and others) came out within the weeks prior to this synthesis and have not had time to accumulate replications or citations. The reading of them is based on the papers themselves rather than on community assessment. Any of them could look different in six months.</li>
+        </ul>
+
+        <h3>Papers and results that would falsify this reading</h3>
+
+        <p>To make the confirmation-bias section operational rather than ritual, three specific results already in the literature (or in this project's own logs) would falsify the synthesis's direction if they hold up under the scrutiny they deserve. They are listed here so that a reader can check whether each one has strengthened or weakened since April 2026.</p>
+
+        <ul>
+            <li><strong>Brehmer et al., TMLR 2025 <a href="#ref-brehmer">[26]</a>.</strong> The pro-structure reading used in theme 3.3 depends on equivariant models holding a roughly 2× compute-efficiency advantage across the FLOP range measured. A careful reading of the paper that concludes data augmentation closes the equivariance gap at scale, rather than structured architecture being the cause, would directly undercut theme 3.3. The same paper is cited both ways in the current literature; the reader should check which reading has won by the time they see this note.</li>
+            <li><strong>Redhardt, Akram, and Schug, NeurIPS 2025 Spotlight <a href="#ref-scaling">[27]</a>.</strong> The paper shows compositional generalization emerging from scale alone in synthetic MLPs given full task-space coverage. If the result transfers to language at realistic scale — which the paper does not claim and the current synthesis treats as not yet demonstrated — then several supporting themes become weaker. The "structure is the mechanism for compositional reasoning" framing stops being load-bearing if scale alone is sufficient.</li>
+            <li><strong>Run 14 in the project's own <span class="mono">EXPERIMENT_LOG.md</span>.</strong> LoopFormer at 0.87 BPB vs Matrix Thinker at 1.67 BPB at matched FLOPs on the same dataset. If this ordering persists at 10M and 100M parameters under the matched-FLOP protocol, the matrix direction cannot justify itself on language-modeling loss alone, and the matrix-CODI experiment's survival depends entirely on the structural measurement being informative in a way that downstream users care about. If the structural measurement also fails to find signal, the matrix direction should be retired.</li>
+        </ul>
+
+        <p>The synthesis is falsifiable at the per-theme level because of this list. A reader who wants to disagree can point at one of these three and explain which theme it undercuts.</p>
+
+        <h2><span class="num">06</span>Future work</h2>
+
+        <p>Two directions improve this synthesis.</p>
+
+        <p>The first is the matrix-CODI experiment itself. If it closes the rank-measurement gap in theme 3.5, the synthesis above stops being a literature reading and becomes the framing for an empirical result with a specific published position. If it fails, one of the themes was misread (most likely 3.5, possibly 3.3) and the next synthesis pass has a concrete anchor to correct against. Either outcome constrains the reading. Theme 3.6 remains a separate constraint either way: the matched-FLOP LoopFormer result is not affected by the rank measurement's outcome.</p>
+
+        <p>The second is a structural improvement to the synthesis process. The current version has a single reader and a single collation pass; an adversarial second-reader pass would be the cheapest upgrade. The most valuable version would be a second researcher running the same eleven topics against the same sampling frame and writing an independent synthesis, with the two readings then compared. We cannot afford this at the current project scale, but we flag it as the structural weakness the current format carries.</p>
+
+        <p>Three smaller follow-ups that are practical at the current scale: (a) repeat the multi-agent session on a six-month cadence and track which themes stay stable and which reorder; (b) build a running bibliography of papers that contradict the synthesis, rather than only papers that support it; (c) when the matrix-CODI result is in, write a short follow-up note comparing the pre-experiment reading to the post-experiment reading and reporting where the two diverged. The third is the one that would most directly address the confirmation-bias limitation.</p>
+
+        <h2><span class="num">07</span>Reproducibility</h2>
+
+        <p>The multi-agent session transcripts are internal and not archived in a public form. The outputs of the session — the per-topic research notes — are in the project repository under <span class="mono">research/</span>, including <span class="mono">hypothesis-attack-april2026.md</span>, <span class="mono">project-analysis-march2026.md</span>, <span class="mono">thought-generation-feasibility-april2026.md</span>, <span class="mono">long-context-byte-models-april2026.md</span>, and several others. The consolidated bibliography is <span class="mono">references.md</span> at the repository root, organized by topic. Every paper cited in this note is in that file; the reverse is not true — the bibliography contains many papers the synthesis did not use, and some of them are more important for individual threads than the ones cited here. The reading of the field below is the author's reading on a fixed date and is not independently replicated.</p>
+
+        <p>The cited papers themselves are all public and accessible through the arXiv or venue identifiers in the bibliography. A reader who wants to check the synthesis can start from the reference list, read the papers in whichever theme is most load-bearing for their question, and form their own reading. The reading does not require the synthesis to be correct — the themes are organized so that disagreement is legible at the per-theme level.</p>
+
+        <div class="references">
+            <h2>References</h2>
+
+            <h3>JEPA family</h3>
+            <ol>
+                <li id="ref-lejepa">Balestriero, R., &amp; LeCun, Y. (Nov 2025). <em>LeJEPA: Provable and Scalable Self-Supervised Learning Without the Heuristics.</em> arXiv:2511.08544.</li>
+                <li id="ref-llmjepa">Huang, H., LeCun, Y., et al. (Sep 2025). <em>LLM-JEPA: LLMs Meet Joint Embedding Predictive Architectures.</em> arXiv:2509.14252.</li>
+                <li id="ref-vjepa2">Meta FAIR (Jun 2025). <em>V-JEPA 2.</em> arXiv:2506.09985.</li>
+                <li id="ref-vjepa21">Meta FAIR (Mar 2026). <em>V-JEPA 2.1.</em> arXiv:2603.14482.</li>
+                <li id="ref-vljepa">Meta (Dec 2025). <em>VL-JEPA.</em> arXiv:2512.10942.</li>
+                <li id="ref-lewm">Maes, Q., LeCun, Y., et al. (Mar 2026). <em>LeWorldModel (LeWM).</em> arXiv:2603.19312.</li>
+                <li id="ref-wavjepa">(2025). <em>WavJEPA.</em> arXiv:2509.23238.</li>
+            </ol>
+
+            <h3>Pure-sensor / language-free SSL</h3>
+            <ol start="8">
+                <li id="ref-dinov3">Siméoni, O., Vo, H., Seitzer, M., et al. (Aug 2025). <em>DINOv3.</em> Meta AI. arXiv:2508.10104.</li>
+                <li id="ref-webssl">Fan, L., et al. (Apr 2025). <em>Web-SSL: Scaling Language-Free Visual Representation Learning.</em> Meta. arXiv:2504.01017.</li>
+                <li id="ref-dataorlang">Liu, Y., et al. (Oct 2025). <em>Data or Language Supervision: What Makes CLIP Better than DINO?</em> EMNLP Findings 2025. arXiv:2510.11835.</li>
+                <li id="ref-binding">(Oct 2025). <em>Does Object Binding Naturally Emerge in Large Pretrained Vision Transformers?</em> arXiv:2510.24709.</li>
+            </ol>
+
+            <h3>Discrete vocabularies and byte-level models</h3>
+            <ol start="12">
+                <li id="ref-chameleon">Meta (May 2024). <em>Chameleon: Mixed-Modal Early-Fusion Foundation Models.</em> arXiv:2405.09818.</li>
+                <li id="ref-blt">Meta (2025). <em>BLT: Byte Latent Transformer.</em> ACL 2025. arXiv:2412.09871.</li>
+                <li id="ref-bolmo">AI2 (Dec 2025). <em>Bolmo: Byteification of OLMo 3.</em> arXiv:2512.15586.</li>
+                <li id="ref-emu35">BAAI (Oct 2025). <em>Emu3.5: Native Multimodal Models are World Learners.</em> arXiv:2510.26583.</li>
+                <li id="ref-fsq">Mentzer, F., et al. (2024). <em>FSQ: VQ-VAE Made Simple.</em> ICLR 2024. arXiv:2309.15505.</li>
+                <li id="ref-bsq">Zhao, Y., et al. (2025). <em>BSQ: Image and Video Tokenization with Binary Spherical Quantization.</em> ICLR 2025. arXiv:2406.07548.</li>
+                <li id="ref-magvit2">Yu, L., et al. (2024). <em>MAGVIT-v2 / LFQ: Language Model Beats Diffusion.</em> ICLR 2024. arXiv:2310.05737.</li>
+                <li id="ref-unitok">Ma, C., Jiang, J., et al. (2025). <em>UniTok.</em> NeurIPS 2025 Spotlight. arXiv:2502.20321.</li>
+                <li id="ref-mblm">IBM (2025). <em>MBLM: Multiscale Byte Language Models.</em> ICML 2025. arXiv:2502.14553.</li>
+                <li id="ref-evabyte">HKU + SambaNova (2025). <em>EvaByte.</em> hkunlp.github.io/blog/2025/evabyte/.</li>
+                <li id="ref-mambabyte">Cornell (2024). <em>MambaByte.</em> COLM 2024. arXiv:2401.13660.</li>
+                <li id="ref-megabyte">Meta (2023). <em>MEGABYTE.</em> NeurIPS 2023. arXiv:2305.07185.</li>
+                <li id="ref-bgpt">Microsoft Research Asia (Feb 2024). <em>bGPT.</em> arXiv:2402.19155.</li>
+            </ol>
+
+            <h3>Structure vs scale</h3>
+            <ol start="25">
+                <li id="ref-helm">He, Y., et al. (2025). <em>HELM: Hyperbolic Large Language Models via Mixture-of-Curvature Experts.</em> NeurIPS 2025. arXiv:2505.24722.</li>
+                <li id="ref-brehmer">Brehmer, J., et al. (Jul 2025). <em>Does equivariance matter at scale?</em> TMLR. arXiv:2410.23179.</li>
+                <li id="ref-scaling">Redhardt, M., Akram, A., &amp; Schug, S. (2025). <em>Scaling can lead to compositional generalization.</em> NeurIPS 2025 Spotlight. arXiv:2507.07207.</li>
+                <li id="ref-wilson">Wilson, A. G. (2025). <em>Deep Learning is Not So Mysterious or Different.</em> ICML 2025. arXiv:2503.02113.</li>
+            </ol>
+
+            <h3>Neuroscience of cognition and language</h3>
+            <ol start="29">
+                <li id="ref-fedorenko">Fedorenko, E., Piantadosi, S. T., &amp; Gibson, E. (2024). <em>Language is primarily a tool for communication rather than thought.</em> Nature.</li>
+                <li id="ref-zaslavsky">Zaslavsky, N., Kemp, C., Regier, T., &amp; Tishby, N. (2018). <em>Efficient compression in color naming and its evolution.</em> PNAS.</li>
+                <li id="ref-moser">Moser, E. I., et al. (2024). <em>Grid Cells in Cognition: Mechanisms and Function.</em> Annual Review of Neuroscience.</li>
+                <li id="ref-gridabstract">(2024). <em>Grid Cells and Abstract Reasoning.</em> bioRxiv 2024.11.20.624569. <a href="https://www.biorxiv.org/content/10.1101/2024.11.20.624569v1.full">biorxiv.org/content/10.1101/2024.11.20.624569v1.full</a>.</li>
+                <li id="ref-chaudhuri">Chaudhuri, R., Gerçek, B., Pandey, B., Peyrache, A., &amp; Fiete, I. (2019). <em>Intrinsic attractor manifold and population dynamics.</em> Nature Neuroscience.</li>
+                <li id="ref-khona">Khona, M., &amp; Fiete, I. (2022). <em>Attractor and integrator networks in the brain.</em> Nature Reviews Neuroscience.</li>
+                <li id="ref-olshausen">Olshausen, B. A., &amp; Field, D. J. (1996). <em>Emergence of simple-cell receptive field properties by sparse coding.</em> Nature.</li>
+                <li id="ref-raoballard">Rao, R. P. N., &amp; Ballard, D. H. (1999). <em>Predictive coding in the visual cortex.</em> Nature Neuroscience.</li>
+                <li id="ref-friston">Friston, K. (2010). <em>The free-energy principle: a unified brain theory?</em> Nature Reviews Neuroscience.</li>
+                <li id="ref-activeinference">Parr, T., Pezzulo, G., &amp; Friston, K. (2022). <em>Active Inference: The Free Energy Principle in Mind, Brain, and Behavior.</em> MIT Press.</li>
+                <li id="ref-dimcog">(2024). <em>Dimensionality of Cognition.</em> Trends in Cognitive Sciences. <a href="https://www.cell.com/trends/cognitive-sciences/fulltext/S1364-6613(24)00189-X">cell.com/trends/cognitive-sciences/fulltext/S1364-6613(24)00189-X</a>.</li>
+                <li id="ref-pfcdim">(Feb 2025). <em>PFC Dimensionality and Cognitive Control.</em> Journal of Neuroscience, 45(6):e0233242024. <a href="https://www.jneurosci.org/content/45/6/e0233242024">jneurosci.org/content/45/6/e0233242024</a>.</li>
+            </ol>
+
+            <h3>Continuous reasoning</h3>
+            <ol start="41">
+                <li id="ref-coconut">Hao, S., Sukhbaatar, S., Su, D., Li, X., Hu, Z., Weston, J., &amp; Tian, Y. (2024). <em>Training Large Language Models to Reason in a Continuous Latent Space (COCONUT).</em> Meta, ICLR 2025. arXiv:2412.06769.</li>
+                <li id="ref-codi">Shen, Z., et al. (2025). <em>CODI: Compressing Chain-of-Thought into Continuous Space via Self-Distillation.</em> EMNLP 2025. arXiv:2502.21074.</li>
+                <li id="ref-cot2">Gozeten, A., Ildiz, M. E., Zhang, Y., Harutyunyan, H., Rawat, A. S., &amp; Oymak, S. (2025). <em>Continuous Chain of Thought Enables Parallel Exploration and Reasoning (CoT2).</em> ICLR 2026. arXiv:2505.23648.</li>
+                <li id="ref-colar">Xiaomi (2025). <em>CoLaR: Dynamic Latent Compression of Reasoning Chains.</em> NeurIPS 2025. arXiv:2505.16552.</li>
+                <li id="ref-marcos">(Sep 2025). <em>MarCos: Markov Chain of Continuous Thoughts.</em> arXiv:2509.25020.</li>
+                <li id="ref-simcot">(Sep 2025). <em>SIM-CoT: Supervised Implicit Chain of Thought.</em> arXiv:2509.20317.</li>
+                <li id="ref-pccot">Wu, et al. (Jun 2025). <em>PCCoT: Parallel Continuous Chain-of-Thought with Jacobi Iteration.</em> arXiv:2506.18582.</li>
+                <li id="ref-latentreasoning">Zhu, H., et al. (2025). <em>A Survey on Latent Reasoning.</em> arXiv:2505.16782.</li>
+                <li id="ref-emergenceof">(Sep 2025). <em>Emergence of Superposition.</em> arXiv:2509.23365.</li>
+                <li id="ref-reasoningby">Zhu, H., et al. (May 2025). <em>Reasoning by Superposition.</em> arXiv:2505.12514.</li>
+                <li id="ref-illusion">(2026). <em>The Illusion of Superposition.</em> arXiv:2604.06374.</li>
+            </ol>
+
+            <h3>Rank and dimensionality measurement</h3>
+            <ol start="52">
+                <li id="ref-dongrank">Dong, Y., Cordonnier, J.-B., &amp; Loukas, A. (2021). <em>Attention is not all you need: Pure attention loses rank doubly exponentially with depth.</em> ICML 2021. arXiv:2103.03404.</li>
+                <li id="ref-dimcollapse">(Aug 2025). <em>Dimensional Collapse in Transformer Attention Outputs.</em> arXiv:2508.16929.</li>
+                <li id="ref-rankts">(Oct 2025). <em>Understanding Transformers for Time Series: Rank Structure.</em> arXiv:2510.03358.</li>
+            </ol>
+
+            <h3>Other threads investigated but not themed</h3>
+            <ol start="55">
+                <li id="ref-ebt">(Jul 2025). <em>Energy-Based Transformers.</em> arXiv:2507.02092.</li>
+                <li id="ref-ttt">Stanford (2024). <em>TTT-Linear / TTT-MLP.</em> arXiv:2407.04620.</li>
+                <li id="ref-nsa">DeepSeek (2025). <em>Native Sparse Attention (NSA).</em> ACL 2025 Best Paper. arXiv:2502.11089.</li>
+                <li id="ref-dsa">DeepSeek (2025). <em>DeepSeek Sparse Attention (DSA).</em> DeepSeek-V3.2. arXiv:2512.02556.</li>
+                <li id="ref-kimi">Moonshot AI (Oct 2025). <em>Kimi Linear.</em> arXiv:2510.26692.</li>
+            </ol>
+        </div>
+
+    </div>
+</article>
+
+<footer>
+    <div class="container">
+        <div>© 2026 pebble &nbsp;·&nbsp; <a href="../index.html">home</a> &nbsp;·&nbsp; <a href="../index.html#findings">all findings</a></div>
+        <div><a href="mailto:sam@pebbleml.com">sam@pebbleml.com</a></div>
+    </div>
+</footer>
+
+</body>
+</html>

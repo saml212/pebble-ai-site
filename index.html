@@ -508,8 +508,8 @@ footer a { color: var(--accent); }
 <section class="hero">
     <div class="container">
         <p class="kicker">let them eat bytes<span class="period">.</span></p>
-        <h1 class="pull">We measure reasoning capacity inside language models by giving them matrix-valued tokens.</h1>
-        <p class="thesis">A matrix has rank. A vector does not. Rank is a differentiable structural property of a single representation, and it bounds how many reasoning paths a model can hold in superposition during inference-time compute. Our research tests whether matrix rank correlates with the number of reasoning paths a continuous-reasoning model actually holds — a question the theoretical literature has asked and no empirical work has answered. Along the way, we build structured representations for byte-level models because bytes are where the field is moving and they need something language-tokenizers have been providing as a crutch.</p>
+        <h1 class="pull">I measure reasoning capacity inside language models by giving them matrix-valued tokens.</h1>
+        <p class="thesis">A matrix has rank. A vector does not. Rank is a differentiable structural property of a single representation, and it bounds how many reasoning paths a model can hold in superposition during inference-time compute. I test whether matrix rank correlates with the number of reasoning paths a continuous-reasoning model actually holds — a question the theoretical literature has asked and no empirical work has answered. Along the way I build structured representations for byte-level models because bytes are where the field is moving and they need something language-tokenizers have been providing as a crutch.</p>
         <p class="status-line">matrix-CODI complete &nbsp;·&nbsp; findings being published</p>
     </div>
 </section>
@@ -518,8 +518,8 @@ footer a { color: var(--accent); }
 <section id="progression">
     <div class="container">
         <div class="eyebrow">the through line</div>
-        <h2 class="section-title">One investigation, three stages, each building on the previous.</h2>
-        <p class="lede">Byte-level processing is where the field is moving, and it has specific problems. Matrix-valued representations address those problems and provide a structural observable no prior approach has. That observable makes a new kind of inference-time reasoning possible: machine-native, structured, measurable.</p>
+        <h2 class="section-title">Three steps. If each works, the next one becomes possible.</h2>
+        <p class="lede">Byte-level processing is where the field is moving and it has specific problems. Matrix-valued representations address those problems and give a structural observable no prior approach has. That observable makes a new kind of inference-time reasoning possible: machine-native, structured, measurable.</p>
 
         <div class="stages">
             <div class="stage">
@@ -535,7 +535,7 @@ footer a { color: var(--accent); }
                         <li>Computational efficiency. Standard O(L²) attention falls over at byte scale.</li>
                         <li>Bytes are hard to relate to each other. A single byte carries very little signal. Most of the meaning lives in the relationships between bytes in a window, and flat-vector models have to rediscover those relationships implicitly at every layer.</li>
                     </ul>
-                    <p>The third problem is the one we focus on.</p>
+                    <p>The third problem is the one I focus on.</p>
                 </div>
             </div>
 
@@ -546,13 +546,13 @@ footer a { color: var(--accent); }
                 </div>
                 <div>
                     <h3>Matrix-valued tokens carry relational structure in the representation itself.</h3>
-                    <p>A matrix-valued token representation carries relational structure directly in the token. Each token is a <span class="mono">d × d</span> matrix whose entries can encode learned pairwise interactions between bytes in a local window. The model no longer has to rediscover those relationships implicitly at every layer. In our experiments, outer-product matrix embeddings cut per-parameter perplexity by 11× at matched parameters against flat vectors — see <a href="findings/outer-product-embedding.html">findings / outer-product embedding</a>.</p>
+                    <p>A matrix-valued token representation carries relational structure directly in the token. Each token is a <span class="mono">d × d</span> matrix whose entries can encode learned pairwise interactions between bytes in a local window. The model no longer has to rediscover those relationships implicitly at every layer. In my experiments, outer-product matrix embeddings cut per-parameter perplexity by 11× at matched parameters against flat vectors — see <a href="findings/outer-product-embedding.html">findings / outer-product embedding</a>.</p>
                     <p>Two properties of matrices matter for this:</p>
                     <ul>
                         <li><strong>Rank</strong> is a measurable, differentiable observable. It quantifies how many independent patterns a representation encodes. Rank can be computed from a single matrix; for a flat vector, it can only be estimated across an ensemble.</li>
-                        <li><strong>Structure</strong> provides inductive bias. Recent evidence at our compute regime favors structured representations (HELM hyperbolic LLM at billion-parameter scale, equivariant transformers at matched compute), and the structured-architecture side now has existence proofs in language modeling where none existed two years ago.</li>
+                        <li><strong>Structure</strong> provides inductive bias. Recent evidence at this compute regime favors structured representations (HELM hyperbolic LLM at billion-parameter scale, equivariant transformers at matched compute), and the structured-architecture side now has existence proofs in language modeling where none existed two years ago.</li>
                     </ul>
-                    <p>The contextualized matrix embedding is a specific realization of this. Instead of each token being a rank-1 outer product (our current baseline), each token's matrix encodes learned pairwise interactions across a 16-byte window. The embedding carries relational structure from the input layer.</p>
+                    <p>The contextualized matrix embedding is a specific realization of this. Instead of each token being a rank-1 outer product (the current baseline), each token's matrix encodes learned pairwise interactions across a 16-byte window. The embedding carries relational structure from the input layer.</p>
                 </div>
             </div>
 
@@ -563,7 +563,7 @@ footer a { color: var(--accent); }
                 </div>
                 <div>
                     <h3>Matrix structure makes inference-time reasoning measurable.</h3>
-                    <p>Continuous-reasoning models like COCONUT (Meta 2024) and CODI (Meta 2025) are the closest we have to machine-native inference-time compute. They let the model "think" by generating latent representations before producing an output. The theoretical claim from the 2025 literature (Reasoning by Superposition, CoT2) is that these latent states hold multiple reasoning paths in superposition. The empirical problem: nobody has measured the structural property the claim describes. A 2026 rebuttal (Illusion of Superposition, arXiv 2604.06374) argues the superposition might be an artifact of how outputs are interpreted.</p>
+                    <p>Continuous-reasoning models like COCONUT (Meta 2024) and CODI (Meta 2025) are the closest thing to machine-native inference-time compute. They let the model "think" by generating latent representations before producing an output. The theoretical claim from the 2025 literature (Reasoning by Superposition, CoT2) is that these latent states hold multiple reasoning paths in superposition. The empirical problem: nobody has measured the structural property the claim describes. A 2026 rebuttal (Illusion of Superposition, arXiv 2604.06374) argues the superposition might be an artifact of how outputs are interpreted.</p>
                     <p>Matrix tokens make the measurement possible. If a matrix of rank <span class="mono">r</span> holds <span class="mono">r</span> linearly independent patterns by construction, then tracking rank during reasoning tracks the number of paths the model holds. The next experiment tests exactly this, and can settle the published dispute.</p>
                     <p class="aside">Supporting framing: Fedorenko et al. (<em>Nature</em>, 2024) dissociates the human language network from reasoning, math, and theory of mind — evidence that reasoning can run on representations that are not language-shaped.</p>
                 </div>
@@ -575,9 +575,9 @@ footer a { color: var(--accent); }
 <!-- ────── findings ────── -->
 <section id="findings">
     <div class="container">
-        <div class="eyebrow">findings</div>
+        <div class="eyebrow">research notes</div>
         <h2 class="section-title">Findings.</h2>
-        <p class="lede">Every experiment has a hypothesis written down in advance, a pre-experiment literature check, success criteria, and an exact reproducible script. These are the findings that survived scrutiny. Click any title to read the full research note.</p>
+        <p class="lede">Click any title for the full note.</p>
 
         <div class="results">
             <a class="result" href="findings/matrix-codi-rank-blindness.html">
@@ -607,7 +607,7 @@ footer a { color: var(--accent); }
             <a class="result" href="findings/outer-product-embedding.html">
                 <div class="body">
                     <h4>Outer-product matrix embeddings outperform flat vectors per parameter</h4>
-                    <p>At single-step processing, a matrix token produced by outer-product embedding beats a flat-vector baseline by <span class="mono">11×</span> in perplexity at matched parameters. Reproduced across every configuration we tested. Read the research note →</p>
+                    <p>At single-step processing, a matrix token produced by outer-product embedding beats a flat-vector baseline by <span class="mono">11×</span> in perplexity at matched parameters. Reproduced across every configuration tested. Read the research note →</p>
                 </div>
                 <span class="meta">proven</span>
             </a>
@@ -629,25 +629,14 @@ footer a { color: var(--accent); }
     <div class="container">
         <div class="eyebrow">roadmap</div>
         <h2 class="section-title">Where this goes after matrix-CODI.</h2>
-        <p class="lede">Each item is hypothesis-driven, compute-estimated, and falsifiable. Compute estimates are conservative. We're pursuing compute grant programs to fund the full roadmap — the first experiment is small enough to self-fund; the later ones require real resources.</p>
-
-        <div class="roadmap-header">
-            <div>
-                <strong>Total planned compute across the full roadmap:</strong>
-            </div>
-            <div class="compute-meta">
-                <strong>~8,500 H100-hours</strong><br>
-                ≈ compute of a single 7B model finetune<br>
-                at cloud rates, ~$20K total
-            </div>
-        </div>
+        <p class="lede">Each item is hypothesis-driven, compute-estimated, and falsifiable. Compute estimates are conservative.</p>
 
         <div class="roadmap">
             <div class="phase">
                 <div class="step">now →</div>
                 <h4>Matrix-native from scratch on a rank-K task</h4>
                 <p>The matrix-CODI negative result localized the failure to the linear-in-<span class="mono">Z</span> readout. The next experiment removes that readout entirely. A small (~10M parameter) fully matrix-native transformer — matrix <span class="mono">Q/K/V</span> with true matrix composition, no flatten anywhere in the forward pass, matrix LM head — trained from scratch on a synthetic task whose ground truth provably requires <span class="mono">K</span> independent scalars of state. If matrix structure is functional, this is where it shows.</p>
-                <div class="budget">~30 H100-hours &nbsp;·&nbsp; self-funded</div>
+                <div class="budget">~30 H100-hours</div>
             </div>
 
             <div class="phase">
@@ -674,21 +663,21 @@ footer a { color: var(--accent); }
             <div class="phase">
                 <div class="step">scale →</div>
                 <h4>Transfer learning across byte-level modalities</h4>
-                <p>Train a single model on raw bytes from text, code, raw pixel images, and raw audio samples. Measure cross-domain transfer coefficients and representation alignment. Test whether matrix structure specifically enables transfer that flat-vector baselines can't match. Requires 10M+ parameters and a mixed-modality byte corpus (which we'll need to construct).</p>
+                <p>Train a single model on raw bytes from text, code, raw pixel images, and raw audio samples. Measure cross-domain transfer coefficients and representation alignment. Test whether matrix structure specifically enables transfer that flat-vector baselines can't match. Requires 10M+ parameters and a mixed-modality byte corpus, which has to be constructed first.</p>
                 <div class="budget">~1,000 H100-hours</div>
             </div>
 
             <div class="phase">
                 <div class="step">scale →</div>
                 <h4>Inference-time matrix reasoning at competitive scale</h4>
-                <p>Matrix-CODI at 10-50M parameters on real benchmarks (GSM8K, MATH, ProsQA, MNNS). Where the toy-scale rank experiment tells us <em>if</em> the phenomenon exists, this tells us <em>how much it matters</em> when the model is actually competent. Published comparison against CODI, CoT2, CoLaR, and MarCos.</p>
+                <p>Matrix-CODI at 10-50M parameters on real benchmarks (GSM8K, MATH, ProsQA, MNNS). Where the toy-scale rank experiment tells <em>if</em> the phenomenon exists, this tells <em>how much it matters</em> when the model is actually competent. Published comparison against CODI, CoT2, CoLaR, and MarCos.</p>
                 <div class="budget">~1,500 H100-hours</div>
             </div>
 
             <div class="phase">
                 <div class="step">scale →</div>
                 <h4>Synthetic reasoning datasets with exact frontier measurement</h4>
-                <p>Generate a calibrated benchmark suite where the number of reasoning paths at each step is analytically computable (subset-sum variants, graph reachability, rule composition). These let us test rank correlations against ground truth rather than annotator-inferred step counts. Datasets released publicly.</p>
+                <p>Generate a calibrated benchmark suite where the number of reasoning paths at each step is analytically computable (subset-sum variants, graph reachability, rule composition). This lets rank correlations be tested against ground truth rather than annotator-inferred step counts. Datasets released publicly.</p>
                 <div class="budget">~200 H100-hours (generation + validation)</div>
             </div>
 
@@ -707,7 +696,7 @@ footer a { color: var(--accent); }
     <div class="container">
         <div class="eyebrow">dead ends</div>
         <h2 class="section-title">Directions the evidence has ruled out.</h2>
-        <p class="lede">Negative results are data. These are the specific hypotheses we tested and ruled out, which narrowed the current direction. Each one represents a pre-registered experiment with a clear falsification criterion.</p>
+        <p class="lede">Negative results are data. These are the specific hypotheses I tested and ruled out, which narrowed the current direction. Each one was a pre-registered experiment with a clear falsification criterion.</p>
 
         <div class="dead-ends">
             <div class="dead">
@@ -732,7 +721,7 @@ footer a { color: var(--accent); }
             </div>
             <div class="dead">
                 <h4>Learned byte segmentation at small scale</h4>
-                <p>Learned segmentation boundaries consistently lose to fixed-stride segmentation at the scales we tested. The learning signal isn't strong enough below ~100M parameters. BLT works at 8B, so this may reverse at scale — but not within our compute regime.</p>
+                <p>Learned segmentation boundaries consistently lose to fixed-stride segmentation at the scales I tested. The learning signal isn't strong enough below ~100M parameters. BLT works at 8B, so this may reverse at scale — but not within this compute regime.</p>
             </div>
         </div>
     </div>

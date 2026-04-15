@@ -319,6 +319,14 @@ a.result .meta {
 a.result .arrow {
     display: none;
 }
+a.result .result-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 10px;
+}
 
 /* ────── roadmap ────── */
 .roadmap-header {
@@ -582,45 +590,60 @@ footer a { color: var(--accent); }
         <div class="results">
             <a class="result" href="findings/matrix-codi-rank-blindness.html">
                 <div class="body">
+                    <div class="result-date">no. 05 &nbsp;·&nbsp; april 14, 2026</div>
                     <h4>Matrix-CODI is decorative: four flat curves and a linear-algebra reason</h4>
                     <p>A fork of CODI with a 16×16 matrix bottleneck at each latent reasoning step. Four flat rank-<span class="mono">k</span> projection curves across two tasks, two distillation regimes, two thinker settings. A three-seed vanilla supervised fine-tune matches matrix-CODI within 0.26 points. The forward pass reads <span class="mono">Z</span> through <span class="mono">w_down(Z.flatten())</span>, a linear map whose Jacobian is constant in <span class="mono">Z</span>; no gradient can reward the singular structure. Nine architectural fixes all reduce to the same form under reshape. Adjudicates the Reasoning by Superposition vs Illusion of Superposition dispute at a mechanistic level. Read the research note →</p>
                 </div>
                 <span class="meta">negative · structural</span>
             </a>
 
-            <a class="result" href="findings/rank-enrichment.html">
-                <div class="body">
-                    <h4>Rank enrichment is an emergent, novel phenomenon</h4>
-                    <p>With a bilinear output head, the effective rank of matrix token representations rises during iterative refinement (<span class="mono">5.02 → 6.12</span>). This runs counter to the prior literature's assumption that depth drives rank collapse. Not reported in any prior work. Read the research note →</p>
-                </div>
-                <span class="meta">novel</span>
-            </a>
-
-            <a class="result" href="findings/output-head-dynamics.html">
-                <div class="body">
-                    <h4>Output mechanism shapes rank trajectory in matrix-valued refinement</h4>
-                    <p>Across three runs that share the Matrix Thinker backbone but vary in output mechanism, the direction of the rank trajectory tracks the output mechanism. Bilinear probes see rank rise across 8 iterations; vector-collapse and 3D matrix-product runs see rank fall. The runs are not FLOPs-matched and this is an observational single-seed finding, not a causal claim. Read the research note →</p>
-                </div>
-                <span class="meta">observational</span>
-            </a>
-
-            <a class="result" href="findings/outer-product-embedding.html">
-                <div class="body">
-                    <h4>Outer-product matrix embeddings outperform flat vectors per parameter</h4>
-                    <p>At single-step processing, a matrix token produced by outer-product embedding beats a flat-vector baseline by <span class="mono">11×</span> in perplexity at matched parameters. Reproduced across every configuration tested. Read the research note →</p>
-                </div>
-                <span class="meta">proven</span>
-            </a>
-
             <a class="result" href="findings/parameter-efficiency.html">
                 <div class="body">
+                    <div class="result-date">no. 04 &nbsp;·&nbsp; april 7, 2026</div>
                     <h4>Matrix operations are 130× more parameter-efficient per layer</h4>
                     <p>At <span class="mono">d = 16</span>, a matrix transformer layer uses 130× fewer parameters than a standard vector attention layer at matched capacity. This changes the parameter allocation of the whole model: where embeddings used to dominate, thinking layers can. Read the research note →</p>
                 </div>
                 <span class="meta">proven</span>
             </a>
 
+            <a class="result" href="findings/output-head-dynamics.html">
+                <div class="body">
+                    <div class="result-date">no. 03 &nbsp;·&nbsp; april 5, 2026</div>
+                    <h4>Output mechanism shapes rank trajectory in matrix-valued refinement</h4>
+                    <p>Across three runs that share the Matrix Thinker backbone but vary in output mechanism, the direction of the rank trajectory tracks the output mechanism. Bilinear probes see rank rise across 8 iterations; vector-collapse and 3D matrix-product runs see rank fall. The runs are not FLOPs-matched and this is an observational single-seed finding, not a causal claim. Read the research note →</p>
+                </div>
+                <span class="meta">observational</span>
+            </a>
+
+            <a class="result" href="findings/rank-enrichment.html">
+                <div class="body">
+                    <div class="result-date">no. 02 &nbsp;·&nbsp; april 2, 2026</div>
+                    <h4>Rank enrichment is an emergent, novel phenomenon</h4>
+                    <p>With a bilinear output head, the effective rank of matrix token representations rises during iterative refinement (<span class="mono">5.02 → 6.12</span>). This runs counter to the prior literature's assumption that depth drives rank collapse. Not reported in any prior work. Read the research note →</p>
+                </div>
+                <span class="meta">novel</span>
+            </a>
+
+            <a class="result" href="findings/outer-product-embedding.html">
+                <div class="body">
+                    <div class="result-date">no. 01 &nbsp;·&nbsp; february 28, 2026</div>
+                    <h4>Outer-product matrix embeddings outperform flat vectors per parameter</h4>
+                    <p>At single-step processing, a matrix token produced by outer-product embedding beats a flat-vector baseline by <span class="mono">11×</span> in perplexity at matched parameters. Reproduced across every configuration tested. Read the research note →</p>
+                </div>
+                <span class="meta">proven</span>
+            </a>
+
         </div>
+    </div>
+</section>
+
+<!-- ────── context: field synthesis ────── -->
+<section id="context">
+    <div class="container">
+        <div class="eyebrow">context</div>
+        <h2 class="section-title">A reading of the field.</h2>
+        <p class="lede">A multi-agent literature synthesis across continuous reasoning, JEPA, structured representations, byte-level models, and the neuroscience of language — with one counter-theme against the project's direction. The context the findings above should be read against.</p>
+        <p><a href="findings/literature-synthesis.html">Read the synthesis →</a></p>
     </div>
 </section>
 

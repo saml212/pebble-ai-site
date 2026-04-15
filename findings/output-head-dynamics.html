@@ -400,12 +400,12 @@ footer a { color: var(--accent); }
 
 <section class="title-block">
     <div class="container">
-        <div class="paper-meta">research note &nbsp;·&nbsp; finding 02 of 06</div>
+        <div class="paper-meta">research note &nbsp;·&nbsp; finding 03</div>
         <h1 class="paper-title">Output mechanism shapes rank trajectory in matrix-valued refinement</h1>
         <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 18px;">single-seed observation</p>
         <p class="authors"><span class="author">Sam Larson</span></p>
         <p class="affil">pebble, San Francisco</p>
-        <p class="date">April 2026 &nbsp;·&nbsp; sam@pebbleml.com</p>
+        <p class="date">April 5, 2026 &nbsp;·&nbsp; sam@pebbleml.com</p>
     </div>
 </section>
 
@@ -425,7 +425,7 @@ footer a { color: var(--accent); }
 
         <p>Matrix-valued token representations make this question sharp. A matrix admits a well-defined rank per token per iteration, so we can watch the trajectory of structural complexity during a single forward pass without having to estimate it across an ensemble. The effective rank (exponential of singular value entropy) is continuous, differentiable, and bounded in <span class="mono">[1, d]</span>. For <span class="mono">d = 32</span>, it gives us roughly five bits of resolution on how many linearly independent directions the matrix is carrying at each step.</p>
 
-        <p>The prior rank-enrichment note (<a href="rank-enrichment.html">finding 01</a>) reported that rank rises during iterative refinement under a bilinear output head. This note varies the output mechanism across three runs that share the Matrix Thinker backbone, and observes that the sign of the rank trajectory tracks the output mechanism across those runs. Because the runs also differ in other respects (training corpus, step count, attention mechanism for one of the three), this is an observational association rather than a controlled test, and we are careful below to mark which comparisons are clean and which are not.</p>
+        <p>The prior rank-enrichment note (<a href="rank-enrichment.html">finding 02</a>) reported that rank rises during iterative refinement under a bilinear output head. This note varies the output mechanism across three runs that share the Matrix Thinker backbone, and observes that the sign of the rank trajectory tracks the output mechanism across those runs. Because the runs also differ in other respects (training corpus, step count, attention mechanism for one of the three), this is an observational association rather than a controlled test, and we are careful below to mark which comparisons are clean and which are not.</p>
 
         <h2><span class="num">02</span>Setup</h2>
 

@@ -400,12 +400,12 @@ footer a { color: var(--accent); }
 
 <section class="title-block">
     <div class="container">
-        <div class="paper-meta">research note &nbsp;·&nbsp; finding 03 of 06</div>
+        <div class="paper-meta">research note &nbsp;·&nbsp; finding 01</div>
         <h1 class="paper-title">The outer-product matrix embedding advantage at T=1</h1>
         <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 18px;">single-seed observations · three comparisons</p>
         <p class="authors"><span class="author">Sam Larson</span></p>
         <p class="affil">pebble, San Francisco</p>
-        <p class="date">April 2026 &nbsp;·&nbsp; sam@pebbleml.com</p>
+        <p class="date">February 28, 2026 &nbsp;·&nbsp; sam@pebbleml.com</p>
     </div>
 </section>
 
@@ -425,7 +425,7 @@ footer a { color: var(--accent); }
 
         <p>The interesting empirical question is whether this embedding produces a better starting point for a language model than a standard flat-vector embedding at comparable parameter counts. The question matters because the outer-product embedding sits at the boundary between two interpretations. One interpretation: the matrix structure is substantive — bilinear read-outs can read the row and column directions independently, and downstream matrix operations preserve that structure. The other interpretation: any low-rank factored embedding (for example, an ALBERT-style bottleneck of shape <span class="mono">V → m → d²</span>) would give the same advantage, because the advantage comes from the compressed parameterization rather than from the matrix shape per se. We have empirical evidence that the first interpretation is consistent with the data; we do not have evidence that it is preferred over the second. This note reports the gap, describes three comparisons that produced it, and names the experiment that would separate the two interpretations.</p>
 
-        <p>The sibling notes in this series (<a href="rank-enrichment.html">finding 01</a> and <a href="output-head-dynamics.html">finding 02</a>) describe what happens during iterative refinement under matrix operations. The present note concerns only the embedding layer and only the <span class="mono">T = 1</span> setting (no iteration). The advantage it reports is about the starting representation, before any thinking loop has run.</p>
+        <p>The later notes in this series (<a href="rank-enrichment.html">finding 02</a> and <a href="output-head-dynamics.html">finding 03</a>) describe what happens during iterative refinement under matrix operations. The present note concerns only the embedding layer and only the <span class="mono">T = 1</span> setting (no iteration). The advantage it reports is about the starting representation, before any thinking loop has run.</p>
 
         <h2><span class="num">02</span>Setup</h2>
 

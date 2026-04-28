@@ -238,6 +238,7 @@ figure {
     border: 1px solid var(--line);
     padding: 24px;
     background: var(--bg);
+    overflow-x: auto;
 }
 figcaption {
     font-size: 0.86rem;
@@ -263,12 +264,17 @@ table {
     border-collapse: collapse;
     margin: 24px 0;
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.94rem;
+    font-size: 0.86rem;
 }
 th, td {
     border: 1px solid var(--line);
-    padding: 12px 16px;
+    padding: 8px 10px;
     text-align: left;
+}
+/* Dense tables (many columns) get extra-tight padding so they fit. */
+table.dense th, table.dense td {
+    padding: 6px 7px;
+    font-size: 0.82rem;
 }
 th {
     background: var(--code-bg);
@@ -435,7 +441,7 @@ footer a { color: var(--accent); }
         <p>We ran the matrix bottleneck under four training conditions that vary the task, the CODI distillation weight <span class="mono">γ</span>, and the multiplicative thinker.</p>
 
         <figure>
-            <table>
+            <table class="dense">
                 <thead>
                     <tr>
                         <th>run</th>
@@ -625,7 +631,7 @@ footer a { color: var(--accent); }
         </figure>
 
         <figure>
-            <table>
+            <table class="dense">
                 <thead>
                     <tr>
                         <th>readout</th>

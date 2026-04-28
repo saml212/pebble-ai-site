@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Matrix-CODI is decorative: four flat rank-k curves, a vanilla-SFT baseline that matches matrix-CODI within seed noise, and a linear-algebra argument that any flatten-then-project readout on Z cannot reward rank.">
-<meta property="og:title" content="Matrix-CODI is Decorative: Four Flat Curves and a Linear-Algebra Reason — pebble">
-<meta property="og:description" content="Research note: a structural explanation for why matrix-valued latent thoughts cannot use rank under a flatten-then-project readout. Complements the Illusion of Superposition empirical finding.">
+<meta name="description" content="The Gradient Does Not See Rank: a structural explanation for the Illusion of Superposition in latent chain-of-thought. Four flat rank-k curves across readout variants, three-seed accuracy-rank decoupling, linear probe evidence that a matrix-CODI bottleneck encodes less target information than raw pretrained GPT-2.">
+<meta property="og:title" content="The Gradient Does Not See Rank — pebble">
+<meta property="og:description" content="An ICML 2026 Mechanistic Interpretability Workshop submission. A structural explanation, falsifiably tested via nonlinear-in-Z readouts, for why rank does not track reasoning in matrix-valued latent CoT.">
 <meta property="og:type" content="article">
 <link rel="icon" type="image/svg+xml" href="../assets/pebble.svg">
-<title>Matrix-CODI is Decorative — pebble</title>
+<title>The Gradient Does Not See Rank — pebble</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
@@ -20,6 +20,11 @@
     --accent: #8B2E1F;
     --line: #1a1a1a;
     --code-bg: #f0e9d3;
+    --c1: #1a1a1a;
+    --c2: #2E5E8B;
+    --c3: #8B2E1F;
+    --c4: #2E8B57;
+    --c5: #8B6F2E;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -57,7 +62,6 @@ a:hover { text-decoration-thickness: 2px; }
     font-family: 'Space Grotesk', sans-serif;
 }
 
-/* ────── header ────── */
 header.paper {
     border-bottom: 1px solid var(--line);
     padding: 22px 0;
@@ -93,7 +97,6 @@ header.paper nav a {
 }
 header.paper nav a:hover { color: var(--accent); }
 
-/* ────── title block ────── */
 .title-block {
     padding: 80px 0 60px;
     border-bottom: 1px solid var(--line);
@@ -136,7 +139,6 @@ h1.paper-title {
     letter-spacing: 0.08em;
 }
 
-/* ────── body ────── */
 article { padding: 50px 0 40px; }
 
 .abstract {
@@ -210,7 +212,6 @@ article ul li::before {
     color: var(--accent);
 }
 
-/* ────── code blocks ────── */
 pre {
     background: var(--code-bg);
     border: 1px solid var(--line);
@@ -232,7 +233,6 @@ pre code {
     padding: 0;
 }
 
-/* ────── figures and tables ────── */
 figure {
     margin: 32px 0;
     border: 1px solid var(--line);
@@ -280,7 +280,6 @@ th {
 }
 td .num { font-family: 'JetBrains Mono', monospace; font-size: 0.94em; }
 
-/* ────── callouts ────── */
 .takeaway {
     border-left: 4px solid var(--accent);
     padding: 14px 0 14px 24px;
@@ -299,7 +298,6 @@ td .num { font-family: 'JetBrains Mono', monospace; font-size: 0.94em; }
     margin-bottom: 8px;
 }
 
-/* ────── references ────── */
 .references {
     margin-top: 56px;
     padding-top: 32px;
@@ -334,7 +332,6 @@ td .num { font-family: 'JetBrains Mono', monospace; font-size: 0.94em; }
     font-weight: 700;
 }
 
-/* ────── footer ────── */
 footer {
     padding: 60px 0 64px;
     border-top: 1px solid var(--line);
@@ -352,7 +349,28 @@ footer .container {
 }
 footer a { color: var(--accent); }
 
-/* ────── responsive ────── */
+/* legend for inline svg charts */
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.82rem;
+    margin-top: 10px;
+    justify-content: center;
+}
+.legend .item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.legend .swatch {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    border: 1px solid var(--line);
+}
+
 @media (max-width: 720px) {
     body { font-size: 17px; }
     .container { padding: 0 24px; }
@@ -386,11 +404,11 @@ footer a { color: var(--accent); }
 
 <section class="title-block">
     <div class="container">
-        <div class="paper-meta">research note &nbsp;·&nbsp; finding 05 &nbsp;·&nbsp; negative result</div>
-        <h1 class="paper-title">Matrix-CODI is decorative: four flat curves and a linear-algebra reason.</h1>
+        <div class="paper-meta">paper preprint &nbsp;·&nbsp; finding 06 &nbsp;·&nbsp; ICML 2026 MI workshop submission</div>
+        <h1 class="paper-title">The gradient does not see rank: a structural explanation for the Illusion of Superposition in latent chain-of-thought.</h1>
         <p class="authors"><span class="author">Sam Larson</span></p>
         <p class="affil">pebble, San Francisco</p>
-        <p class="date">April 14, 2026 &nbsp;·&nbsp; sam@pebbleml.com</p>
+        <p class="date">April 17, 2026 &nbsp;·&nbsp; sam@pebbleml.com</p>
     </div>
 </section>
 
@@ -399,531 +417,439 @@ footer a { color: var(--accent); }
 
         <div class="abstract">
             <span class="label">abstract</span>
-            <p>Rizvi-Martel et al., <em>The Illusion of Superposition?</em> [8], recently showed empirically that a fine-tuned COCONUT-style latent reasoner reaches 96.6% on ProsQA <em>without</em> latent tokens, matching the full latent model to within a point and beating explicit chain-of-thought (85.3%) by a wide margin. The empirical claim that the latent reasoning machinery is not doing work in fine-tuned settings is theirs, and we do not reproduce it — our vanilla supervised fine-tune on ProsQA reaches only 81.77% (3-seed mean), roughly 15 percentage points below their published baseline. Against that baseline gap, we report a <em>structural</em> result that complements the Illusion finding. We built a fork of CODI with a <span class="mono">d × d</span> matrix bottleneck at each latent step, trained it on GSM8K-Aug and ProsQA at GPT-2 small scale, and measured the effective rank of the matrix thought <span class="mono">Z</span>. Across four orthogonal training conditions — two tasks, two distillation regimes, two thinker settings — the rank-<span class="mono">k</span> projection ablation curve is flat to within 0.6 percentage points. There is a linear-algebra reason: the forward pass reads <span class="mono">Z</span> as <span class="mono">w_down(Z.flatten())</span>, a linear map whose Jacobian with respect to <span class="mono">Z</span> is a constant tensor independent of <span class="mono">Z</span>. No gradient signal can reward <span class="mono">Z</span>'s singular structure, so the model places its useful information in a single component and every downstream rank is decoration. Nine architectural variants we designed to break this — K-probe bilinear readouts, quadratic <span class="mono">ZZ<sup>⊤</sup></span> heads, spectral polynomial features, matrix-valued attention, an end-to-end matrix LM head, train-time rank constraints — all reduce to linear-in-<span class="mono">Z</span> under reshape and inherit the same rank-blindness. The contribution is the structural argument: any flatten-then-project readout on a matrix latent is rank-blind by construction, giving a specific mechanism for the empirical observation in [8] and closing off a family of "matrix bottleneck" architectural fixes without running them. Our absolute numbers sit ~15 points (ProsQA) to ~36 points (GSM8K-Aug) below the published state of the art, and we do not claim to have reproduced any published baseline; we make no claim that depends on absolute accuracy.</p>
+            <p>Continuous chain-of-thought models compress reasoning into latent tokens. Matrix-valued variants introduce a new structural observable — the rank of the latent matrix Z. If matrix latents carry parallel reasoning paths via superposition, rank should track them, and truncating Z to low rank should hurt accuracy when the task needs more than k paths. Across four training regimes of a matrix-CODI model (three on ProsQA, one on GSM8K-Aug at a below-threshold operating point), the rank-<span class="mono">k</span> projection ablation curve is flat to within 0.6 percentage points. A three-seed replication yields accuracy at <span class="mono">81.51 ± 1.2</span>pp while the final effective rank of <span class="mono">Z</span> spans <span class="mono">{4, 12, 13}</span>; the loss does not reward any particular rank. To test whether rank-blindness arises from the flatten-then-project readout alone, four readout variants are constructed: a bilinear reparametrization, a bilinear-plus-GELU readout explicitly nonlinear in <span class="mono">Z</span>, an SVD-augmented readout feeding singular values through an MLP (computed via <code>torch.linalg.svdvals</code> for numerical stability), and a quadratic readout in the second moment <span class="mono">ZZ<sup>⊤</sup></span>. All four rank-<span class="mono">k</span> curves remain flat (Spearman <span class="mono">p</span> values <span class="mono">0.63, 0.14, 0.82, 0.46</span>). Readout linearity is a sufficient but not necessary condition: even readouts nonlinear in <span class="mono">Z</span> do not produce rank-dependent curves, indicating the simple Jacobian-linearity mechanism is incomplete. A refined mechanism — an effectively rank-1 active subspace of the trained readout's Jacobian — is deferred to future work. A linear probe on Z (1536 features across 6 positions) underperforms a raw pretrained hidden state (768 features) at target prediction (AUC 0.673 vs 0.846). Rank-<span class="mono">k</span> ablation should not be used as a probe for superposition in CODI-trained matrix latents.</p>
         </div>
 
-        <h2><span class="num">01</span>What was already known, and what this note adds</h2>
+        <h2><span class="num">01</span>Setup and what was already known</h2>
 
-        <p>Two 2025 theory papers argued that continuous chain-of-thought models hold multiple reasoning paths in superposition. <em>Reasoning by Superposition</em> [3] proved that a two-layer transformer with <span class="mono">D</span> steps of continuous thought can solve directed graph reachability, where each continuous thought encodes a parallel BFS frontier. <em>CoT2</em> [4] showed similar parallel-exploration behavior under a different training regime. Both claims are theoretical and supported by accuracy curves. Neither work measures the structural property its construction describes, because vector representations don't have a single-point-in-time analog to rank — "how many patterns are active" in a vector has to be estimated across an ensemble.</p>
+        <p>A matrix-CODI model forks CODI [5] and inserts a <span class="mono">d × d</span> matrix bottleneck on each latent position's feedback path. Given the previous latent hidden state <span class="mono">h ∈ ℝ<sup>D</sup></span>, the bottleneck maps it up to a <span class="mono">d × d</span> matrix, optionally applies a multiplicative thinking step, and projects back to the residual dimension via a readout <span class="mono">φ : ℝ<sup>d×d</sup> → ℝ<sup>D</sup></span>. The default readout is <span class="mono">φ(Z) = W<sub>down</sub> · vec(Z)</span> — a flatten-then-project. We use <span class="mono">d = 16</span> throughout, on top of a GPT-2 backbone, and train with the CODI self-distillation objective on ProsQA and GSM8K-Aug.</p>
 
-        <p>A 2026 paper, <em>The Illusion of Superposition?</em> by Rizvi-Martel et al. [8], pushed back on the empirical side. Their headline numbers on ProsQA are the relevant prior art for anything we say below:</p>
+        <p><strong>Why matrix latents.</strong> Vector representations are flat: a hidden state of dimension <span class="mono">D</span> has <span class="mono">D</span> scalar entries with no native notion of how many independent components it superposes. Matrix-valued representations have an additional structural observable — rank, the number of independent directions used. Matrix-valued working memory has a long lineage in neural networks: fast-weight networks (Schmidhuber 1992; Schlag, Irie, Schmidhuber 2021), linear attention (Katharopoulos et al. 2020), the xLSTM family (Beck et al. 2024), and the Mamba/SSM family (Gu &amp; Dao 2023) all use matrix-shaped state, and recent work measures the rank of these states as a diagnostic of how the model uses its memory (Nazari &amp; Rusch 2026; <em>State Rank Dynamics</em> 2026). In all of those, the matrix lives <em>inside</em> a layer — an attention head's accumulator, an SSM's recurrent state — and serves as recurrent memory. Matrix-CODI extends the lineage to a different placement: the matrix sits on the explicit chain-of-thought feedback path, where each latent reasoning position is a <span class="mono">d × d</span> matrix rather than a vector. The rank of that matrix is a candidate measure of how many reasoning paths the model holds in superposition at that step. The hypothesis we test is whether rank, so defined, behaves as that measure under CODI-style training.</p>
 
-        <figure>
-            <table>
-                <thead>
-                    <tr>
-                        <th>system (from [8])</th>
-                        <th>ProsQA accuracy</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td>COCONUT with latent tokens</td><td><span class="num">99.0%</span></td></tr>
-                    <tr><td>COCONUT <em>without</em> latent tokens (same fine-tuned weights)</td><td><span class="num">96.6%</span></td></tr>
-                    <tr><td>explicit chain-of-thought baseline</td><td><span class="num">85.3%</span></td></tr>
-                </tbody>
-            </table>
-            <figcaption><span class="fig-label">prior art</span>The empirical observation that removing latent tokens from a fine-tuned latent reasoner costs almost nothing on ProsQA is due to Rizvi-Martel et al., <em>The Illusion of Superposition?</em> [8]. The 2.4-point gap between COCONUT with and without latents, against an 11.3-point gap between COCONUT-no-latents and explicit CoT, is their evidence that latent thinking in fine-tuned models is largely decorative. This is the baseline the present note's structural argument sits on top of.</figcaption>
-        </figure>
+        <p>The superposition hypothesis [3, 4] predicts that continuous latents hold multiple reasoning paths simultaneously. Matrix-valued latents sharpen the hypothesis: each singular direction of <span class="mono">Z</span> could encode a separate path. The natural empirical probe is to SVD-truncate <span class="mono">Z</span> to rank <span class="mono">k</span> before the readout and measure accuracy. A flat accuracy-vs-<span class="mono">k</span> curve is evidence that rank is not functional.</p>
 
-        <p>We did not reproduce the Illusion result. Our own vanilla GPT-2 supervised fine-tune on ProsQA reaches 81.77% (three-seed mean), roughly 15 percentage points below their 96.6%. The likely reasons are mundane — different hyperparameters, shorter training, different prompt format, different base model scale — and we explicitly disclaim any attempt to match their absolute number (see §11). The empirical "latents are decorative on ProsQA" finding is theirs. Nothing in this note should be read as an independent confirmation of the empirical claim, and nothing below depends on matching their absolute accuracy.</p>
+        <p>Recent empirical work by Rizvi-Martel et al. [8] — the <em>Illusion of Superposition</em> paper — reports that a fine-tuned COCONUT model reaches 96.6% on ProsQA <em>without</em> latent tokens, against 99.0% with them and 85.3% for explicit chain-of-thought. Their result is that the latent machinery is largely decorative in the fine-tuned regime; our contribution is a mechanism at the architecture level that explains, specifically for matrix-valued latents, why the structural observable the superposition hypothesis predicts should matter does not.</p>
 
-        <p>What we <em>do</em> contribute is a structural mechanism. Matrix-valued thoughts have a structural observable that vector thoughts don't: a <span class="mono">d × d</span> matrix has a rank, computable from a single sample via the SVD. The natural extension of the superposition hypothesis to matrix thoughts is that rank tracks the number of reasoning paths the model holds, and that projecting <span class="mono">Z</span> to lower rank at evaluation should hurt accuracy on tasks that need more paths. We ran that experiment in four training configurations and got flat curves in all of them. Then we worked out why — at the level of linear algebra — and the answer turned out to close off a family of architectural fixes without running them. That structural argument is what this note is about.</p>
+        <h2><span class="num">02</span>Four flat rank-<span class="mono">k</span> curves</h2>
 
-        <p>Framed carefully: <em>The Illusion of Superposition?</em> [8] shows <em>empirically</em> that fine-tuned latent reasoners don't need the latent machinery. This note shows <em>structurally</em>, within a matrix-valued variant of that family, why the machinery cannot carry the particular quantity (rank) that the superposition hypothesis predicts it should carry. The two findings are complementary, not competing, and the empirical observation is theirs.</p>
-
-        <h2><span class="num">02</span>The architecture we tested</h2>
-
-        <p>We fork CODI [5] and insert a matrix bottleneck into each latent reasoning step. CODI is the 2025 self-distillation framework that compresses explicit chain-of-thought into 6 continuous latent positions, matching explicit CoT on GSM8K at GPT-2 scale. The student pass feeds the previous latent position's hidden state back as the next input embedding, six times, before producing the answer.</p>
-
-        <p>The matrix bottleneck sits on that feedback path. Given a <span class="mono">D</span>-dimensional hidden state <span class="mono">h</span>, it projects to a <span class="mono">d × d</span> matrix, optionally applies one iteration of a multiplicative thinking layer, then projects back to <span class="mono">D</span>:</p>
-
-        <pre><code>h_in  ∈ R^D                            # previous latent hidden state
-flat  = w_up(h_in)                     # R^D → R^{d²}, Linear(D, d²)
-Z     = flat.view(d, d)                # reshape to d × d
-Z     = (I + Δ(Z)) · Z · (I + Γ(Z))    # optional thinker
-flat' = Z.reshape(d²)                  # flatten back
-h_out = LayerNorm(w_down(flat'))       # R^{d²} → R^D, Linear(d², D) + LN
-return h_out, Z                        # h_out feeds the next step;
-                                       # Z is saved for rank analysis</code></pre>
-
-        <p>We use <span class="mono">d = 16</span> throughout, giving a 256-dimensional flattened matrix and a 768-dimensional GPT-2 hidden. The multiplicative thinker <span class="mono">(I + Δ)·Z·(I + Γ)</span> is the same row/column update from our earlier matrix-thinking experiments. The forward implementation lives in <span class="mono">matrix-thinking/scripts/run_matrix_codi.py</span>, class <span class="mono">MatrixBottleneck</span>.</p>
-
-        <p>At evaluation we can optionally truncate <span class="mono">Z</span> to rank <span class="mono">k</span> via SVD before the down-projection: <span class="mono">Z<sub>k</sub> = U<sub>:k</sub> Σ<sub>:k</sub> V<sub>:k</sub><sup>⊤</sup></span>. This is the rank-<span class="mono">k</span> ablation. If rank is functional, accuracy at <span class="mono">k = 1</span> should be meaningfully lower than accuracy at <span class="mono">k = d = 16</span>. If rank is vestigial, the two are the same.</p>
-
-        <h2><span class="num">03</span>Four flat curves</h2>
-
-        <p>We ran the bottleneck under four training conditions that vary the task, the CODI distillation weight <span class="mono">γ</span>, and the multiplicative thinker. Each run produced a single rank-<span class="mono">k</span> ablation curve. All four are flat.</p>
+        <p>We ran the matrix bottleneck under four training conditions that vary the task, the CODI distillation weight <span class="mono">γ</span>, and the multiplicative thinker.</p>
 
         <figure>
             <table>
                 <thead>
                     <tr>
-                        <th>round</th>
+                        <th>run</th>
                         <th>task</th>
                         <th>γ</th>
                         <th>thinker</th>
                         <th>Z rank</th>
-                        <th>k=1 acc</th>
-                        <th>k=16 acc</th>
+                        <th>k=1</th>
+                        <th>k=16</th>
                         <th>Spearman r</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>GSM8K-Aug</td>
-                        <td><span class="num">1.0</span></td>
-                        <td>on</td>
-                        <td><span class="num">~5.5</span></td>
-                        <td><span class="num">6.00%</span></td>
-                        <td><span class="num">6.12%</span></td>
-                        <td><span class="num">−0.023</span></td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>ProsQA</td>
-                        <td><span class="num">1.0</span></td>
-                        <td>on</td>
-                        <td><span class="num">~10.2</span></td>
-                        <td><span class="num">78.4%</span></td>
-                        <td><span class="num">78.4%</span></td>
-                        <td><span class="num">+0.026</span></td>
-                    </tr>
-                    <tr>
-                        <td>3 run 1</td>
-                        <td>ProsQA</td>
-                        <td><span class="num">0.0</span></td>
-                        <td>on</td>
-                        <td><span class="num">~12.7</span></td>
-                        <td><span class="num">76.8%</span></td>
-                        <td><span class="num">76.6%</span></td>
-                        <td><span class="num">−0.105</span></td>
-                    </tr>
-                    <tr>
-                        <td>3 run 2</td>
-                        <td>ProsQA</td>
-                        <td><span class="num">0.0</span></td>
-                        <td>off</td>
-                        <td><span class="num">~12.8</span></td>
-                        <td><span class="num">72.6%</span></td>
-                        <td><span class="num">72.4%</span></td>
-                        <td><span class="num">+0.095</span></td>
-                    </tr>
+                    <tr><td>R1</td><td>GSM8K-Aug</td><td><span class="num">1.0</span></td><td>on</td><td><span class="num">~5.5</span></td><td><span class="num">6.00%</span></td><td><span class="num">6.12%</span></td><td><span class="num">−0.023</span></td></tr>
+                    <tr><td>R2</td><td>ProsQA</td><td><span class="num">1.0</span></td><td>on</td><td><span class="num">~10.2</span></td><td><span class="num">78.4%</span></td><td><span class="num">78.4%</span></td><td><span class="num">+0.026</span></td></tr>
+                    <tr><td>R3a</td><td>ProsQA</td><td><span class="num">0.0</span></td><td>on</td><td><span class="num">~12.7</span></td><td><span class="num">76.8%</span></td><td><span class="num">76.6%</span></td><td><span class="num">−0.105</span></td></tr>
+                    <tr><td>R3b</td><td>ProsQA</td><td><span class="num">0.0</span></td><td>off</td><td><span class="num">~12.8</span></td><td><span class="num">72.6%</span></td><td><span class="num">72.4%</span></td><td><span class="num">+0.095</span></td></tr>
                 </tbody>
             </table>
-            <figcaption><span class="fig-label">table 1</span>Rank-<span class="mono">k</span> projection ablation across four training conditions. Z rank is mean effective rank of the 16×16 matrix thought at eval time, measured as the exponential of singular-value entropy. k=1 and k=16 are greedy accuracies after truncating <span class="mono">Z</span> to the given rank before the down-projection. The range across k ∈ {1, 2, 4, 8, 16} is 0.2–0.6 percentage points in every row. The Spearman rank correlation between per-sample effective rank and correctness hovers at zero with inconsistent sign.</figcaption>
+            <figcaption><span class="fig-label">table 1</span>Rank-<span class="mono">k</span> projection ablation across four training conditions. Z rank is mean effective rank at eval time (exp of singular-value entropy). Range across <span class="mono">k ∈ {1, 2, 4, 8, 16}</span> is ≤ 0.6 pp in every row. Spearman signs are inconsistent and magnitudes are within ±0.11 of zero.</figcaption>
         </figure>
 
-        <p>The important property of this table is that it varies four things and none of them moves the curve:</p>
+        <p>Neither the task, the distillation weight, nor the thinker moves the curve. Removing the distillation loss (<span class="mono">γ = 0</span>) <em>raises</em> the effective rank from ~10 to ~13, because the training signal is softer, but does not change the shape of the rank-<span class="mono">k</span> curve. The functionally used rank of <span class="mono">Z</span>, read out by any downstream operation in the stack, is 1.</p>
 
-        <ul>
-            <li><strong>Task.</strong> Arithmetic (GSM8K-Aug) and logical reasoning (ProsQA) differ by orders of magnitude in accuracy and by a factor of two in the mean effective rank the bottleneck learns. Both curves are flat.</li>
-            <li><strong>CODI distillation.</strong> Setting <span class="mono">γ = 0</span> removes the L1-at-colon loss that aligns the student's hidden state to the teacher's. This was the most-suspected training-side explanation for the flat curve. Round 3 Run 1 removes it and the curve is still flat; the effective rank rises (~10 → ~13) because the training signal is softer, but the functional rank does not.</li>
-            <li><strong>Multiplicative thinker.</strong> Turning the thinker off (Round 3 Run 2) drops accuracy by roughly one point. It does not change rank dynamics and does not change curve shape.</li>
-            <li><strong>Effective rank magnitude.</strong> The ProsQA bottleneck reaches effective rank ~12.8 out of a 16-dimensional ceiling. A rank-<span class="mono">k</span> projection to <span class="mono">k = 1</span> destroys essentially all of that structure. Accuracy moves by 0.2 points. Whatever the model is using the matrix for, it is not using twelve independent singular directions.</li>
-        </ul>
+        <h2><span class="num">03</span>The readout Jacobian is constant in <span class="mono">Z</span></h2>
+
+        <p>The flatten-then-project readout <span class="mono">φ(Z) = W<sub>down</sub> · vec(Z)</span> is linear in <span class="mono">Z</span>. Its Jacobian</p>
+
+        <pre><code>∂φ(Z)/∂Z[i, j] = W_down[:, ij]     (constant in Z)</code></pre>
+
+        <p>does not depend on <span class="mono">Z</span>. The loss gradient with respect to <span class="mono">Z</span> is a vector contracted with a constant tensor. It cannot depend on the singular structure of <span class="mono">Z</span>, and the optimizer has no training signal that rewards rank. This argument applies to any readout linear in <span class="mono">Z</span> — Frobenius inner products, low-rank factored linear projections, per-vocab bilinear logits — all of which have constant Jacobians.</p>
+
+        <p>This is a sufficient condition for rank-blindness. The rest of the paper asks whether it is also necessary.</p>
+
+        <h2><span class="num">04</span>Three-seed accuracy-rank decoupling</h2>
+
+        <p>If the loss does not reward rank, two training seeds of the same configuration should be allowed to land at different ranks while reaching comparable accuracy. We ran three seeds (1337, 42, 7) of the flatten-readout configuration on ProsQA with <span class="mono">γ = 0</span>, 25 epochs, batch 16, AdamW at <span class="mono">lr = 10<sup>−4</sup></span>.</p>
+
+        <figure>
+            <svg viewBox="0 0 680 330" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 640px; display: block; margin: 0 auto; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+                <rect x="0" y="0" width="680" height="330" fill="#FAF5E7"/>
+                <g transform="translate(70, 30)">
+                    <!-- axes: x=final Z rank (0..16), y=best accuracy (79.5..84.0) -->
+                    <rect x="0" y="0" width="550" height="250" fill="none" stroke="#1a1a1a" stroke-width="1"/>
+                    <!-- y ticks, range 79.5 to 84.0 in 1 pp steps -->
+                    <text x="-8" y="5" text-anchor="end" fill="#5a5a5a">84.0%</text>
+                    <text x="-8" y="60" text-anchor="end" fill="#5a5a5a">82.9%</text>
+                    <text x="-8" y="116" text-anchor="end" fill="#5a5a5a">81.8%</text>
+                    <text x="-8" y="172" text-anchor="end" fill="#5a5a5a">80.6%</text>
+                    <text x="-8" y="228" text-anchor="end" fill="#5a5a5a">79.5%</text>
+                    <!-- x ticks: 0..16 -->
+                    <text x="0"   y="268" text-anchor="middle" fill="#5a5a5a">0</text>
+                    <text x="137" y="268" text-anchor="middle" fill="#5a5a5a">4</text>
+                    <text x="275" y="268" text-anchor="middle" fill="#5a5a5a">8</text>
+                    <text x="412" y="268" text-anchor="middle" fill="#5a5a5a">12</text>
+                    <text x="550" y="268" text-anchor="middle" fill="#5a5a5a">16</text>
+                    <!-- mean band 81.51 +/- 1.2 -->
+                    <!-- acc_y = (84.0 - acc) / 4.5 * 250 -->
+                    <!-- 80.31 -> (84-80.31)/4.5*250 = 205; 82.71 -> (84-82.71)/4.5*250 = 71.7 -->
+                    <rect x="0" y="71.7" width="550" height="133.1" fill="#8B2E1F" fill-opacity="0.08"/>
+                    <!-- mean line at 81.51: (84-81.51)/4.5*250 = 138.3 -->
+                    <line x1="0" y1="138.3" x2="550" y2="138.3" stroke="#8B2E1F" stroke-width="0.8" stroke-dasharray="4,3"/>
+                    <text x="540" y="134" text-anchor="end" fill="#8B2E1F" font-size="10">mean 81.51%</text>
+
+                    <!-- x grid at 4/8/12 -->
+                    <line x1="137" y1="0" x2="137" y2="250" stroke="#1a1a1a" stroke-width="0.2" stroke-dasharray="2,4"/>
+                    <line x1="275" y1="0" x2="275" y2="250" stroke="#1a1a1a" stroke-width="0.2" stroke-dasharray="2,4"/>
+                    <line x1="412" y1="0" x2="412" y2="250" stroke="#1a1a1a" stroke-width="0.2" stroke-dasharray="2,4"/>
+
+                    <!-- seed 42: rank 4.0, acc 81.25  => x=137, y=(84-81.25)/4.5*250 = 152.8 -->
+                    <circle cx="137" cy="152.8" r="6" fill="#8B2E1F" stroke="#1a1a1a" stroke-width="1"/>
+                    <text x="150" y="152" fill="#1a1a1a" font-size="10">seed 42 · rank 4 · 81.25%</text>
+
+                    <!-- seed 7: rank 12.0, acc 82.81 => x=412, y=(84-82.81)/4.5*250 = 66.1 -->
+                    <circle cx="412" cy="66.1" r="6" fill="#8B2E1F" stroke="#1a1a1a" stroke-width="1"/>
+                    <text x="288" y="64" fill="#1a1a1a" font-size="10">seed 7 · rank 12 · 82.81%</text>
+
+                    <!-- seed 1337: rank 12.9, acc 80.47 => x=443, y=(84-80.47)/4.5*250 = 196.1 -->
+                    <circle cx="443" cy="196.1" r="6" fill="#8B2E1F" stroke="#1a1a1a" stroke-width="1"/>
+                    <text x="320" y="213" fill="#1a1a1a" font-size="10">seed 1337 · rank 12.9 · 80.47%</text>
+
+                    <!-- axis labels -->
+                    <text x="275" y="295" text-anchor="middle" font-size="11" fill="#1a1a1a">final effective rank of Z</text>
+                    <text x="-50" y="125" text-anchor="middle" font-size="11" fill="#1a1a1a" transform="rotate(-90, -50, 125)">best ProsQA accuracy</text>
+                </g>
+            </svg>
+            <figcaption><span class="fig-label">figure 1</span>Three seeds of the same flatten-readout configuration. Accuracy is tight (<span class="mono">81.51 ± 1.2</span>pp, shaded band is mean ± std), but the final effective rank of <span class="mono">Z</span> varies <span class="mono">3×</span> (seed 42 converges at rank ~4; seeds 7 and 1337 converge near rank 12). The loss does not push <span class="mono">Z</span> toward any particular rank.</figcaption>
+        </figure>
+
+        <p>The same loss lands at effective ranks spanning a 3× range, at matching accuracy. This directly demonstrates that the matrix-bottleneck training objective is rank-agnostic — stronger than the flat rank-<span class="mono">k</span> curve alone, because it shows the loss landscape is flat along rank-changing directions of <span class="mono">Z</span>.</p>
 
         <div class="takeaway">
             <span class="label">result 1</span>
-            The matrix bottleneck learns task-dependent effective rank (5.5 on arithmetic, 12.8 on logic), but that rank is not functionally read. Projecting <span class="mono">Z</span> to its top singular component at evaluation changes accuracy by less than 0.6 percentage points on every run we tested. Rank is decoration.
+            Three training seeds of the same configuration yield ProsQA accuracies 80.47%, 81.25%, 82.81% (<span class="mono">81.51 ± 1.2</span>pp) while converging to final effective ranks 12.9, 4, 12 — a 3× spread in rank at matching accuracy. Rank is a free direction in the loss landscape.
         </div>
 
+        <h2><span class="num">05</span>Positive control: four readouts nonlinear in <span class="mono">Z</span></h2>
+
+        <p>The Jacobian argument in §3 gives a sufficient condition for rank-blindness. The natural prediction is that a readout with non-constant Jacobian — a readout explicitly nonlinear in <span class="mono">Z</span> — should bend the rank-<span class="mono">k</span> curve. We tested four variants, replacing only the readout <span class="mono">φ</span> and leaving everything else (γ=0, <span class="mono">d = 16</span>, six latent positions, seed 1337, 25 epochs, batch 16) identical.</p>
+
+        <ul>
+            <li><strong>Bilinear.</strong> <span class="mono">φ(Z) = W · [u<sub>k</sub><sup>⊤</sup> Z v<sub>k</sub>]<sub>k=1..d²</sub></span>. Reparametrization of flatten. Still linear in <span class="mono">Z</span>. Serves as a control.</li>
+            <li><strong>Bilinear + GELU.</strong> <span class="mono">φ(Z) = W · GELU([u<sub>k</sub><sup>⊤</sup> Z v<sub>k</sub>])</span>. Nonlinear in <span class="mono">Z</span>.</li>
+            <li><strong>SVD-augmented.</strong> <span class="mono">φ(Z) = W<sub>down</sub> · vec(Z) + MLP(σ(Z))</span> where <span class="mono">σ(Z)</span> are the singular values of <span class="mono">Z</span>. Explicitly exposes rank.</li>
+            <li><strong>Quadratic.</strong> <span class="mono">φ(Z) = W<sub>down</sub> · vec(concat(Z Z<sup>⊤</sup>, Z<sup>⊤</sup> Z))</span>. Second-moment readout. Quadratic in <span class="mono">Z</span>.</li>
+        </ul>
+
         <figure>
-            <svg viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 680px; display: block; margin: 0 auto; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
-                <!-- background -->
-                <rect x="0" y="0" width="720" height="380" fill="#FAF5E7"/>
+            <svg viewBox="0 0 680 360" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 640px; display: block; margin: 0 auto; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+                <rect x="0" y="0" width="680" height="360" fill="#FAF5E7"/>
+                <g transform="translate(70, 30)">
+                    <rect x="0" y="0" width="550" height="260" fill="none" stroke="#1a1a1a" stroke-width="1"/>
+                    <!-- y range: 75.5 to 80.5 -->
+                    <text x="-8" y="5" text-anchor="end" fill="#5a5a5a">80.5%</text>
+                    <text x="-8" y="70" text-anchor="end" fill="#5a5a5a">79.25%</text>
+                    <text x="-8" y="135" text-anchor="end" fill="#5a5a5a">78.0%</text>
+                    <text x="-8" y="200" text-anchor="end" fill="#5a5a5a">76.75%</text>
+                    <text x="-8" y="260" text-anchor="end" fill="#5a5a5a">75.5%</text>
+                    <!-- x ticks log scale k in {1,2,4,8,16}; pixel positions 0, 137.5, 275, 412.5, 550 -->
+                    <text x="0"     y="280" text-anchor="middle" fill="#5a5a5a">k=1</text>
+                    <text x="137.5" y="280" text-anchor="middle" fill="#5a5a5a">2</text>
+                    <text x="275"   y="280" text-anchor="middle" fill="#5a5a5a">4</text>
+                    <text x="412.5" y="280" text-anchor="middle" fill="#5a5a5a">8</text>
+                    <text x="550"   y="280" text-anchor="middle" fill="#5a5a5a">16</text>
 
-                <!-- panel 1: Round 1 GSM8K-Aug -->
-                <g transform="translate(40, 30)">
-                    <text x="140" y="-8" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a1a">Round 1 — GSM8K-Aug, γ=1, thinker on</text>
-                    <rect x="0" y="0" width="280" height="130" fill="none" stroke="#1a1a1a" stroke-width="1"/>
-                    <!-- y-axis ticks: range 5.80 to 6.30 -->
-                    <text x="-6" y="8" text-anchor="end" fill="#5a5a5a">6.30%</text>
-                    <text x="-6" y="69" text-anchor="end" fill="#5a5a5a">6.05%</text>
-                    <text x="-6" y="130" text-anchor="end" fill="#5a5a5a">5.80%</text>
-                    <line x1="0" y1="65" x2="280" y2="65" stroke="#1a1a1a" stroke-width="0.3" stroke-dasharray="2,3"/>
-                    <!-- x ticks at k=1,2,4,8,16 on log scale; log2(k)/4 * 280 -->
-                    <!-- k=1 → 0, k=2 → 70, k=4 → 140, k=8 → 210, k=16 → 280 -->
-                    <text x="0" y="145" text-anchor="middle" fill="#5a5a5a">k=1</text>
-                    <text x="70" y="145" text-anchor="middle" fill="#5a5a5a">2</text>
-                    <text x="140" y="145" text-anchor="middle" fill="#5a5a5a">4</text>
-                    <text x="210" y="145" text-anchor="middle" fill="#5a5a5a">8</text>
-                    <text x="280" y="145" text-anchor="middle" fill="#5a5a5a">16</text>
-                    <!-- data: y = (6.30 - acc) / 0.50 * 130 -->
-                    <!-- k=1:6.00→72.8, k=2:6.12→43.6, k=4:6.12→43.6, k=8:6.25→13.0, k=16:6.12→43.6 -->
-                    <polyline points="0,72.8 70,46.8 140,46.8 210,13.0 280,46.8" fill="none" stroke="#8B2E1F" stroke-width="2"/>
-                    <circle cx="0" cy="72.8" r="3" fill="#8B2E1F"/>
-                    <circle cx="70" cy="46.8" r="3" fill="#8B2E1F"/>
-                    <circle cx="140" cy="46.8" r="3" fill="#8B2E1F"/>
-                    <circle cx="210" cy="13.0" r="3" fill="#8B2E1F"/>
-                    <circle cx="280" cy="46.8" r="3" fill="#8B2E1F"/>
-                    <text x="140" y="165" text-anchor="middle" fill="#5a5a5a">range 0.25 pp · Spearman r = −0.023</text>
-                </g>
+                    <!-- helpers: acc_to_y: y = (80.5 - acc)/5 * 260 -->
+                    <!-- flatten: 79.0 at each k -->
+                    <!-- bilinear: 78.125, 78.906, 78.906, 78.125, 78.125 -->
+                    <!-- bilinear+GELU: 78.906, 79.688, 79.688, 79.688, 79.688 -->
+                    <!-- svd_aug: 77.344, 78.125, 78.125, 77.344, 78.125 -->
+                    <!-- quadratic: 79.688, 79.688, 79.688, 79.688, 79.688 -->
 
-                <!-- panel 2: Round 2 ProsQA γ=1 thinker on -->
-                <g transform="translate(400, 30)">
-                    <text x="140" y="-8" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a1a">Round 2 — ProsQA, γ=1, thinker on</text>
-                    <rect x="0" y="0" width="280" height="130" fill="none" stroke="#1a1a1a" stroke-width="1"/>
-                    <text x="-6" y="8" text-anchor="end" fill="#5a5a5a">78.60%</text>
-                    <text x="-6" y="69" text-anchor="end" fill="#5a5a5a">78.30%</text>
-                    <text x="-6" y="130" text-anchor="end" fill="#5a5a5a">78.00%</text>
-                    <line x1="0" y1="65" x2="280" y2="65" stroke="#1a1a1a" stroke-width="0.3" stroke-dasharray="2,3"/>
-                    <text x="0" y="145" text-anchor="middle" fill="#5a5a5a">k=1</text>
-                    <text x="70" y="145" text-anchor="middle" fill="#5a5a5a">2</text>
-                    <text x="140" y="145" text-anchor="middle" fill="#5a5a5a">4</text>
-                    <text x="210" y="145" text-anchor="middle" fill="#5a5a5a">8</text>
-                    <text x="280" y="145" text-anchor="middle" fill="#5a5a5a">16</text>
-                    <!-- y = (78.60 - acc) / 0.60 * 130 -->
-                    <!-- k=1:78.40→43.3, k=2:78.00→130, k=4:78.40→43.3, k=8:78.40→43.3, k=16:78.40→43.3 -->
-                    <polyline points="0,43.3 70,130 140,43.3 210,43.3 280,43.3" fill="none" stroke="#8B2E1F" stroke-width="2"/>
-                    <circle cx="0" cy="43.3" r="3" fill="#8B2E1F"/>
-                    <circle cx="70" cy="130" r="3" fill="#8B2E1F"/>
-                    <circle cx="140" cy="43.3" r="3" fill="#8B2E1F"/>
-                    <circle cx="210" cy="43.3" r="3" fill="#8B2E1F"/>
-                    <circle cx="280" cy="43.3" r="3" fill="#8B2E1F"/>
-                    <text x="140" y="165" text-anchor="middle" fill="#5a5a5a">range 0.40 pp · Spearman r = +0.026</text>
-                </g>
+                    <!-- flatten line: y = (80.5-79)/5*260 = 78 -->
+                    <polyline points="0,78 137.5,78 275,78 412.5,78 550,78" fill="none" stroke="#1a1a1a" stroke-width="1.8"/>
+                    <circle cx="0" cy="78" r="3.5" fill="#1a1a1a"/>
+                    <circle cx="137.5" cy="78" r="3.5" fill="#1a1a1a"/>
+                    <circle cx="275" cy="78" r="3.5" fill="#1a1a1a"/>
+                    <circle cx="412.5" cy="78" r="3.5" fill="#1a1a1a"/>
+                    <circle cx="550" cy="78" r="3.5" fill="#1a1a1a"/>
 
-                <!-- panel 3: Round 3 Run 1 ProsQA γ=0 thinker on -->
-                <g transform="translate(40, 220)">
-                    <text x="140" y="-8" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a1a">Round 3 Run 1 — ProsQA, γ=0, thinker on</text>
-                    <rect x="0" y="0" width="280" height="130" fill="none" stroke="#1a1a1a" stroke-width="1"/>
-                    <text x="-6" y="8" text-anchor="end" fill="#5a5a5a">77.20%</text>
-                    <text x="-6" y="69" text-anchor="end" fill="#5a5a5a">76.80%</text>
-                    <text x="-6" y="130" text-anchor="end" fill="#5a5a5a">76.40%</text>
-                    <line x1="0" y1="65" x2="280" y2="65" stroke="#1a1a1a" stroke-width="0.3" stroke-dasharray="2,3"/>
-                    <text x="0" y="145" text-anchor="middle" fill="#5a5a5a">k=1</text>
-                    <text x="70" y="145" text-anchor="middle" fill="#5a5a5a">2</text>
-                    <text x="140" y="145" text-anchor="middle" fill="#5a5a5a">4</text>
-                    <text x="210" y="145" text-anchor="middle" fill="#5a5a5a">8</text>
-                    <text x="280" y="145" text-anchor="middle" fill="#5a5a5a">16</text>
-                    <!-- y = (77.20 - acc) / 0.80 * 130 -->
-                    <!-- k=1:76.80→65.0, k=2:77.00→32.5, k=4:76.80→65.0, k=8:76.60→97.5, k=16:76.60→97.5 -->
-                    <polyline points="0,65.0 70,32.5 140,65.0 210,97.5 280,97.5" fill="none" stroke="#8B2E1F" stroke-width="2"/>
-                    <circle cx="0" cy="65.0" r="3" fill="#8B2E1F"/>
-                    <circle cx="70" cy="32.5" r="3" fill="#8B2E1F"/>
-                    <circle cx="140" cy="65.0" r="3" fill="#8B2E1F"/>
-                    <circle cx="210" cy="97.5" r="3" fill="#8B2E1F"/>
-                    <circle cx="280" cy="97.5" r="3" fill="#8B2E1F"/>
-                    <text x="140" y="165" text-anchor="middle" fill="#5a5a5a">range 0.40 pp · Spearman r = −0.105</text>
-                </g>
+                    <!-- bilinear: y = (80.5-acc)/5*260 -->
+                    <!-- 78.125→123.5, 78.906→82.9, 78.125→123.5, 78.125→123.5 -->
+                    <polyline points="0,123.5 137.5,82.9 275,82.9 412.5,123.5 550,123.5" fill="none" stroke="#2E5E8B" stroke-width="1.8"/>
+                    <circle cx="0" cy="123.5" r="3.5" fill="#2E5E8B"/>
+                    <circle cx="137.5" cy="82.9" r="3.5" fill="#2E5E8B"/>
+                    <circle cx="275" cy="82.9" r="3.5" fill="#2E5E8B"/>
+                    <circle cx="412.5" cy="123.5" r="3.5" fill="#2E5E8B"/>
+                    <circle cx="550" cy="123.5" r="3.5" fill="#2E5E8B"/>
 
-                <!-- panel 4: Round 3 Run 2 ProsQA γ=0 thinker off -->
-                <g transform="translate(400, 220)">
-                    <text x="140" y="-8" text-anchor="middle" font-size="11" font-weight="700" fill="#1a1a1a">Round 3 Run 2 — ProsQA, γ=0, thinker off</text>
-                    <rect x="0" y="0" width="280" height="130" fill="none" stroke="#1a1a1a" stroke-width="1"/>
-                    <text x="-6" y="8" text-anchor="end" fill="#5a5a5a">73.00%</text>
-                    <text x="-6" y="69" text-anchor="end" fill="#5a5a5a">72.60%</text>
-                    <text x="-6" y="130" text-anchor="end" fill="#5a5a5a">72.20%</text>
-                    <line x1="0" y1="65" x2="280" y2="65" stroke="#1a1a1a" stroke-width="0.3" stroke-dasharray="2,3"/>
-                    <text x="0" y="145" text-anchor="middle" fill="#5a5a5a">k=1</text>
-                    <text x="70" y="145" text-anchor="middle" fill="#5a5a5a">2</text>
-                    <text x="140" y="145" text-anchor="middle" fill="#5a5a5a">4</text>
-                    <text x="210" y="145" text-anchor="middle" fill="#5a5a5a">8</text>
-                    <text x="280" y="145" text-anchor="middle" fill="#5a5a5a">16</text>
-                    <!-- y = (73.00 - acc) / 0.80 * 130 -->
-                    <!-- k=1:72.60→65.0, k=2:72.60→65.0, k=4:72.80→32.5, k=8:72.60→65.0, k=16:72.40→97.5 -->
-                    <polyline points="0,65.0 70,65.0 140,32.5 210,65.0 280,97.5" fill="none" stroke="#8B2E1F" stroke-width="2"/>
-                    <circle cx="0" cy="65.0" r="3" fill="#8B2E1F"/>
-                    <circle cx="70" cy="65.0" r="3" fill="#8B2E1F"/>
-                    <circle cx="140" cy="32.5" r="3" fill="#8B2E1F"/>
-                    <circle cx="210" cy="65.0" r="3" fill="#8B2E1F"/>
-                    <circle cx="280" cy="97.5" r="3" fill="#8B2E1F"/>
-                    <text x="140" y="165" text-anchor="middle" fill="#5a5a5a">range 0.40 pp · Spearman r = +0.095</text>
+                    <!-- bilinear+GELU: 78.906→82.9, 79.688→42.2 -->
+                    <polyline points="0,82.9 137.5,42.2 275,42.2 412.5,42.2 550,42.2" fill="none" stroke="#8B2E1F" stroke-width="1.8"/>
+                    <circle cx="0" cy="82.9" r="3.5" fill="#8B2E1F"/>
+                    <circle cx="137.5" cy="42.2" r="3.5" fill="#8B2E1F"/>
+                    <circle cx="275" cy="42.2" r="3.5" fill="#8B2E1F"/>
+                    <circle cx="412.5" cy="42.2" r="3.5" fill="#8B2E1F"/>
+                    <circle cx="550" cy="42.2" r="3.5" fill="#8B2E1F"/>
+
+                    <!-- svd_aug: 77.344→164.2, 78.125→123.5 -->
+                    <polyline points="0,164.2 137.5,123.5 275,123.5 412.5,164.2 550,123.5" fill="none" stroke="#2E8B57" stroke-width="1.8"/>
+                    <circle cx="0" cy="164.2" r="3.5" fill="#2E8B57"/>
+                    <circle cx="137.5" cy="123.5" r="3.5" fill="#2E8B57"/>
+                    <circle cx="275" cy="123.5" r="3.5" fill="#2E8B57"/>
+                    <circle cx="412.5" cy="164.2" r="3.5" fill="#2E8B57"/>
+                    <circle cx="550" cy="123.5" r="3.5" fill="#2E8B57"/>
+
+                    <!-- quadratic: 79.688→42.2 -->
+                    <polyline points="0,42.2 137.5,42.2 275,42.2 412.5,42.2 550,42.2" fill="none" stroke="#8B6F2E" stroke-width="1.8"/>
+                    <circle cx="0" cy="42.2" r="3.5" fill="#8B6F2E"/>
+                    <circle cx="137.5" cy="42.2" r="3.5" fill="#8B6F2E"/>
+                    <circle cx="275" cy="42.2" r="3.5" fill="#8B6F2E"/>
+                    <circle cx="412.5" cy="42.2" r="3.5" fill="#8B6F2E"/>
+                    <circle cx="550" cy="42.2" r="3.5" fill="#8B6F2E"/>
+
+                    <!-- axis labels -->
+                    <text x="275" y="305" text-anchor="middle" font-size="11" fill="#1a1a1a">rank-k SVD truncation of Z at inference</text>
+                    <text x="-52" y="130" text-anchor="middle" font-size="11" fill="#1a1a1a" transform="rotate(-90, -52, 130)">ProsQA accuracy</text>
                 </g>
             </svg>
-            <figcaption><span class="fig-label">figure 1</span>Rank-<span class="mono">k</span> ablation curves for all four training conditions. Each panel uses a y-axis zoomed to a 0.5–0.8 pp window around the run's mean so the within-run variation is visible; the x-axis is log-scale <span class="mono">k ∈ {1, 2, 4, 8, 16}</span>. Round 1 spans 0.25 pp, Rounds 2–3 span 0.40 pp. Spearman <span class="mono">r</span> between per-sample effective rank and correctness: −0.023 (Round 1), +0.026 (Round 2), −0.105 (Round 3 Run 1), +0.095 (Round 3 Run 2). Signs are inconsistent and magnitudes are within ±0.11 of zero.</figcaption>
+            <div class="legend">
+                <div class="item"><span class="swatch" style="background:#1a1a1a"></span>flatten (linear)</div>
+                <div class="item"><span class="swatch" style="background:#2E5E8B"></span>bilinear</div>
+                <div class="item"><span class="swatch" style="background:#8B2E1F"></span>bilinear + GELU</div>
+                <div class="item"><span class="swatch" style="background:#2E8B57"></span>SVD-augmented</div>
+                <div class="item"><span class="swatch" style="background:#8B6F2E"></span>quadratic</div>
+            </div>
+            <figcaption><span class="fig-label">figure 2</span>Rank-<span class="mono">k</span> ablation curves for five readouts on 128 ProsQA test problems. The four positive-control readouts — bilinear reparametrization, bilinear+GELU (explicitly nonlinear in <span class="mono">Z</span>), SVD-augmented (feeds singular values through an MLP), and quadratic (second moment) — all produce curves flat to within ~0.8 pp. Quadratic is perfectly flat at 79.69% across all five <span class="mono">k</span>.</figcaption>
         </figure>
-
-        <h2><span class="num">04</span>Our local vanilla-SFT control (not a reproduction)</h2>
-
-        <p>The <em>Illusion of Superposition</em> [8] result already tells us that, at a properly tuned operating point, the latent machinery is not doing work on ProsQA. We nevertheless ran the same-style control inside our own training pipeline so that Result 1 above can be compared against a same-distribution baseline, not an external number from a different codebase, model, and hyperparameter setup. The point of this section is not to rediscover the Illusion finding. It is to check that, <em>within our weaker operating point</em>, removing the entire matrix-CODI stack also does not hurt — so that the flat rank-<span class="mono">k</span> curves in §3 cannot be written off as "the stack is doing something even if rank isn't the mechanism."</p>
-
-        <p>We ran a three-seed control: vanilla GPT-2 small, no latents, no special tokens, no CODI distillation, no matrix bottleneck. Format is <span class="mono">"question + ' The answer is:' → answer"</span>, standard cross-entropy on the full sequence, same hyperparameters as the matrix-CODI runs (lr = 1e-4, 25 epochs, batch 16, AdamW, identical data pipeline).</p>
 
         <figure>
             <table>
                 <thead>
                     <tr>
-                        <th>condition</th>
-                        <th>ProsQA best acc</th>
-                        <th>notes</th>
+                        <th>readout</th>
+                        <th>k=1</th>
+                        <th>k=2</th>
+                        <th>k=4</th>
+                        <th>k=8</th>
+                        <th>k=16</th>
+                        <th>Spearman r</th>
+                        <th>p</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>vanilla GPT-2 SFT, seed 0</td>
-                        <td><span class="num">81.25%</span></td>
-                        <td>no latents, no CODI, no matrix</td>
-                    </tr>
-                    <tr>
-                        <td>vanilla GPT-2 SFT, seed 1</td>
-                        <td><span class="num">82.03%</span></td>
-                        <td>ties the matrix-CODI best</td>
-                    </tr>
-                    <tr>
-                        <td>vanilla GPT-2 SFT, seed 2</td>
-                        <td><span class="num">82.03%</span></td>
-                        <td>ties the matrix-CODI best</td>
-                    </tr>
-                    <tr>
-                        <td>vanilla GPT-2 SFT, mean</td>
-                        <td><span class="num">81.77%</span></td>
-                        <td>three-seed average</td>
-                    </tr>
-                    <tr>
-                        <td>matrix-CODI, Round 2 best</td>
-                        <td><span class="num">82.03%</span></td>
-                        <td>γ = 1, thinker on</td>
-                    </tr>
-                    <tr>
-                        <td>difference</td>
-                        <td><span class="num">0.26 pp</span></td>
-                        <td>within seed noise</td>
-                    </tr>
+                    <tr><td>flatten</td><td><span class="num">79.0%</span></td><td><span class="num">79.0%</span></td><td><span class="num">79.0%</span></td><td><span class="num">79.0%</span></td><td><span class="num">79.0%</span></td><td><span class="num">~0</span></td><td>flat</td></tr>
+                    <tr><td>bilinear</td><td><span class="num">78.12%</span></td><td><span class="num">78.91%</span></td><td><span class="num">78.91%</span></td><td><span class="num">78.12%</span></td><td><span class="num">78.12%</span></td><td><span class="num">+0.04</span></td><td><span class="num">0.63</span></td></tr>
+                    <tr><td>bilinear + GELU</td><td><span class="num">78.91%</span></td><td><span class="num">79.69%</span></td><td><span class="num">79.69%</span></td><td><span class="num">79.69%</span></td><td><span class="num">79.69%</span></td><td><span class="num">−0.13</span></td><td><span class="num">0.14</span></td></tr>
+                    <tr><td>SVD-augmented</td><td><span class="num">77.34%</span></td><td><span class="num">78.12%</span></td><td><span class="num">78.12%</span></td><td><span class="num">77.34%</span></td><td><span class="num">78.12%</span></td><td><span class="num">+0.02</span></td><td><span class="num">0.82</span></td></tr>
+                    <tr><td>quadratic</td><td><span class="num">79.69%</span></td><td><span class="num">79.69%</span></td><td><span class="num">79.69%</span></td><td><span class="num">79.69%</span></td><td><span class="num">79.69%</span></td><td><span class="num">+0.07</span></td><td><span class="num">0.46</span></td></tr>
                 </tbody>
             </table>
-            <figcaption><span class="fig-label">table 2</span>Inside our own training pipeline, vanilla GPT-2 supervised fine-tuning matches matrix-CODI on ProsQA within seed noise. Two of three seeds tie the matrix-CODI best exactly; the mean is 0.26 percentage points below it. Both sit ~15 percentage points below the 96.6% number that Rizvi-Martel et al. [8] report for fine-tuned COCONUT-without-latents on ProsQA, which we do not reproduce. This table is a same-distribution control for our matrix-CODI runs, not an independent confirmation of the Illusion of Superposition empirical finding.</figcaption>
+            <figcaption><span class="fig-label">table 2</span>Rank-<span class="mono">k</span> ablation on 128 ProsQA problems, by readout. All four positive-control Spearman <span class="mono">p</span>-values are above 0.14. Quadratic is identical across all five <span class="mono">k</span>.</figcaption>
         </figure>
-
-        <p>Two of three vanilla seeds tie the best matrix-CODI run. The mean across seeds is 0.26 percentage points below it. The matrix-CODI stack has 124.84M parameters; vanilla GPT-2 has 124.44M. Within our pipeline, the 0.4M additional parameters and the entire student–teacher distillation pipeline buy less than one-third of a percentage point on this task.</p>
-
-        <p><strong>Our 81.77% vanilla SFT number is about 15 percentage points below the 96.6% figure Rizvi-Martel et al. [8] report for fine-tuned COCONUT without latent tokens on ProsQA.</strong> Possible reasons: different hyperparameters, shorter training, different prompt formatting, different data preprocessing. We have not closed the gap. The <em>Illusion of Superposition</em> paper is the stronger empirical baseline for the "latents are decorative" claim, and that empirical claim is theirs. Our local vanilla-SFT number shows the narrower statement in Result 2: inside our training pipeline, at our weaker operating point, the matrix-CODI stack is also not contributing. That is what Result 1's flat curves need it to show, and no more.</p>
 
         <div class="takeaway">
-            <span class="label">result 2 (local, same-distribution only)</span>
-            Inside our own training pipeline, a vanilla GPT-2 supervised fine-tune on ProsQA matches matrix-CODI within 0.26 percentage points averaged over three seeds, and ties the matrix-CODI best on two of three seeds. Both sit ~15 points below the published state of the art [8]. Reading: within our setup, the matrix-CODI stack contributes nothing above vanilla fine-tuning; we make no cross-setup claim. The empirical "fine-tuned latent reasoners don't use their latents" finding is due to [8], not this note.
+            <span class="label">result 2</span>
+            The Jacobian hypothesis predicts that a nonlinear-in-<span class="mono">Z</span> readout (bilinear+GELU, SVD-augmented, quadratic) should bend the rank-<span class="mono">k</span> curve. None of them do. The flat rank-<span class="mono">k</span> curve is not specific to readout linearity — it persists through readouts whose Jacobians are demonstrably non-constant. Readout linearity is a sufficient but not necessary condition: the matrix-bottleneck training objective produces rank-indifferent gradients through the full chain rule.
         </div>
 
-        <p>Two readings of the local control are compatible with our evidence. First, the narrow one: ProsQA at GPT-2 small and our operating point is solvable by shortcut pattern-matching on the question tokens, so neither the latents nor the matrix have anything to contribute. Second, the broader one: the superposition hypothesis predicts that continuous thoughts carry structural information about parallel reasoning paths, and a model that is not using that structural information will match a model that has no thoughts at all. The Illusion paper's properly-tuned 96.6% / 99.0% numbers [8] are the evidence for the broader reading at the right operating point; our local control only rules out "something else in the matrix-CODI stack is compensating" within our setup. Result 1, the four flat rank-<span class="mono">k</span> curves, tells us what mechanism is relevant <em>inside our specific architecture</em>: the matrix does build rank, but nothing in the forward pass reads it.</p>
+        <p>A candidate refined hypothesis: the trained readout's Jacobian at test inputs has an effectively rank-1 active subspace in Z, regardless of whether the readout is in-principle nonlinear. This would explain why even SVD-augmented readouts (which explicitly expose singular values to the optimizer via <code>torch.linalg.svdvals</code>) produce flat curves — the backward pass is numerically stable, and the empirical result (SVD-aug best accuracy 78.12%, below flatten at 80.47%) rules out the failure mode of the optimizer silently zeroing the SVD branch. The Jacobian-row-space effective rank measurement is a camera-ready experiment; the refined hypothesis is not yet tested by this submission.</p>
 
-        <h2><span class="num">05</span>Result 3: what is <span class="mono">Z</span> encoding</h2>
+        <h2><span class="num">06</span>Depth and scale do not rescue matrix-CODI</h2>
 
-        <p>The flat rank-<span class="mono">k</span> curves in §3 and the vanilla-SFT tie in §4 leave open a question: if the matrix bottleneck is not using rank and is not contributing accuracy, <em>what does</em> <span class="mono">Z</span> carry? We ran a linear probe to check.</p>
-
-        <p>Setup. Load the Round 3 Run 1 checkpoint (matrix-CODI, <span class="mono">γ = 0</span>, thinker on, ProsQA). Run a forward pass on 500 held-out ProsQA test problems and extract the matrix thought <span class="mono">Z</span> at all 6 latent positions, giving 3000 <span class="mono">Z</span> tensors. Flatten each to <span class="mono">ℝ<sup>256</sup></span>. Train a 5-fold cross-validated multi-class logistic regression that predicts the target class symbol (the correct answer identity in the ProsQA ontology) from <span class="mono">Z</span>, reporting macro-averaged one-vs-rest AUC. Two controls run on the same 500 problems and the same prompt: vanilla pretrained GPT-2 (no ProsQA fine-tuning) hidden state at the final prompt token, and a randomly initialized GPT-2 hidden state at the same position.</p>
-
-        <p>The pre-registered threshold was: matrix <span class="mono">Z</span> AUC must exceed <span class="mono">max(vanilla, random) + 0.05</span> to count as a positive result.</p>
+        <p>Two natural follow-up questions are whether the failure is specific to six latent positions and whether it persists at larger scale. We ran a depth sweep (vanilla CODI with iterative refinement) and a scale sweep (vanilla SFT and matrix-CODI at gpt2-small, gpt2-medium, gpt2-large).</p>
 
         <figure>
-            <table>
-                <thead>
-                    <tr>
-                        <th>feature</th>
-                        <th>AUC</th>
-                        <th>±</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td>matrix <span class="mono">Z[0]</span> (first latent)</td><td><span class="num">0.609</span></td><td><span class="num">0.040</span></td></tr>
-                    <tr><td>matrix <span class="mono">Z[1]</span></td><td><span class="num">0.693</span></td><td><span class="num">0.031</span></td></tr>
-                    <tr><td>matrix <span class="mono">Z[2]</span></td><td><span class="num">0.652</span></td><td><span class="num">0.036</span></td></tr>
-                    <tr><td>matrix <span class="mono">Z[3]</span></td><td><span class="num">0.646</span></td><td><span class="num">0.033</span></td></tr>
-                    <tr><td>matrix <span class="mono">Z[4]</span></td><td><span class="num">0.639</span></td><td><span class="num">0.033</span></td></tr>
-                    <tr><td>matrix <span class="mono">Z[5]</span> (last latent)</td><td><span class="num">0.633</span></td><td><span class="num">0.033</span></td></tr>
-                    <tr><td>matrix <span class="mono">Z[all concat]</span></td><td><span class="num">0.673</span></td><td><span class="num">0.030</span></td></tr>
-                    <tr><td>vanilla GPT-2 hidden state</td><td><span class="num">0.846</span></td><td><span class="num">0.026</span></td></tr>
-                    <tr><td>random GPT-2 hidden state</td><td><span class="num">0.495</span></td><td><span class="num">0.031</span></td></tr>
-                </tbody>
-            </table>
-            <figcaption><span class="fig-label">table 3</span>5-fold cross-validated multi-class logistic regression AUC for predicting the ProsQA target class symbol. <span class="mono">Z[i]</span> is the matrix thought at latent position <span class="mono">i</span>, flattened to a 256-dim vector. Vanilla GPT-2 is the pretrained model with no ProsQA fine-tuning; random GPT-2 is the same architecture at initialization. The pre-registered threshold for a positive result was matrix <span class="mono">Z</span> AUC &gt; max(vanilla, random) + 0.05 = 0.896. The best matrix <span class="mono">Z</span> AUC is 0.693 (Z[1]). Verdict: null.</figcaption>
+            <svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 640px; display: block; margin: 0 auto; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+                <rect x="0" y="0" width="680" height="280" fill="#FAF5E7"/>
+                <g transform="translate(70, 30)">
+                    <rect x="0" y="0" width="550" height="200" fill="none" stroke="#1a1a1a" stroke-width="1"/>
+                    <!-- y: 0..95% -->
+                    <text x="-8" y="5"   text-anchor="end" fill="#5a5a5a">95%</text>
+                    <text x="-8" y="55"  text-anchor="end" fill="#5a5a5a">71.25%</text>
+                    <text x="-8" y="105" text-anchor="end" fill="#5a5a5a">47.5%</text>
+                    <text x="-8" y="155" text-anchor="end" fill="#5a5a5a">23.75%</text>
+                    <text x="-8" y="200" text-anchor="end" fill="#5a5a5a">0%</text>
+
+                    <!-- 3 model groups, with 2 bars each, bar group width 160 px -->
+                    <!-- group positions: 70, 275, 480 (centers) -->
+                    <!-- x=acc_y: y = (95-acc)/95 * 200 -->
+                    <!-- gpt2-small: vanilla 81.77 -> 27.85; matrix 80.47 -> 30.59 -->
+                    <!-- gpt2-medium: vanilla 80.47 -> 30.59; matrix 79.69 -> 32.23 -->
+                    <!-- gpt2-large: vanilla 68.75 -> 55.26; matrix pending -->
+
+                    <!-- small group -->
+                    <rect x="20"  y="27.85" width="50" height="172.15" fill="#2E5E8B" stroke="#1a1a1a" stroke-width="0.6"/>
+                    <text x="45" y="22" text-anchor="middle" font-size="10" fill="#1a1a1a">81.77</text>
+                    <rect x="70"  y="30.59" width="50" height="169.41" fill="#8B2E1F" stroke="#1a1a1a" stroke-width="0.6"/>
+                    <text x="95" y="25" text-anchor="middle" font-size="10" fill="#1a1a1a">80.47</text>
+                    <text x="70" y="220" text-anchor="middle" font-size="11" fill="#1a1a1a">GPT-2 small (124M)</text>
+
+                    <!-- medium group -->
+                    <rect x="225" y="30.59" width="50" height="169.41" fill="#2E5E8B" stroke="#1a1a1a" stroke-width="0.6"/>
+                    <text x="250" y="25" text-anchor="middle" font-size="10" fill="#1a1a1a">80.47</text>
+                    <rect x="275" y="32.23" width="50" height="167.77" fill="#8B2E1F" stroke="#1a1a1a" stroke-width="0.6"/>
+                    <text x="300" y="27" text-anchor="middle" font-size="10" fill="#1a1a1a">79.69</text>
+                    <text x="275" y="220" text-anchor="middle" font-size="11" fill="#1a1a1a">GPT-2 medium (355M)</text>
+
+                    <!-- large group -->
+                    <rect x="430" y="55.26" width="50" height="144.74" fill="#2E5E8B" stroke="#1a1a1a" stroke-width="0.6"/>
+                    <text x="455" y="50" text-anchor="middle" font-size="10" fill="#1a1a1a">68.75</text>
+                    <rect x="480" y="195" width="50" height="5" fill="#8B2E1F" fill-opacity="0.15" stroke="#1a1a1a" stroke-width="0.6" stroke-dasharray="2,2"/>
+                    <text x="505" y="190" text-anchor="middle" font-size="10" fill="#5a5a5a" transform="rotate(-90 505 190)">pending</text>
+                    <text x="480" y="220" text-anchor="middle" font-size="11" fill="#1a1a1a">GPT-2 large (774M)</text>
+
+                    <text x="-52" y="100" text-anchor="middle" font-size="11" fill="#1a1a1a" transform="rotate(-90, -52, 100)">best ProsQA acc (%)</text>
+                </g>
+            </svg>
+            <div class="legend">
+                <div class="item"><span class="swatch" style="background:#2E5E8B"></span>vanilla SFT</div>
+                <div class="item"><span class="swatch" style="background:#8B2E1F"></span>matrix-CODI</div>
+            </div>
+            <figcaption><span class="fig-label">figure 3</span>Scale sweep on ProsQA. Matrix-CODI tracks below vanilla SFT at every tested scale. Vanilla SFT itself degrades at gpt2-large — ProsQA's 17,886 training examples appear to be too few for the larger backbone at default learning rate. Matrix-large is pending (batch 4 and batch 2 both OOM).</figcaption>
         </figure>
 
-        <p>Verdict: null. The best matrix <span class="mono">Z</span> AUC (0.693) does not exceed the threshold (0.896). Three facts the table shows:</p>
+        <figure>
+            <svg viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 640px; display: block; margin: 0 auto; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+                <rect x="0" y="0" width="680" height="260" fill="#FAF5E7"/>
+                <g transform="translate(70, 30)">
+                    <rect x="0" y="0" width="550" height="180" fill="none" stroke="#1a1a1a" stroke-width="1"/>
+                    <!-- y range 70..85 -->
+                    <text x="-8" y="5"   text-anchor="end" fill="#5a5a5a">85%</text>
+                    <text x="-8" y="51"  text-anchor="end" fill="#5a5a5a">81.25%</text>
+                    <text x="-8" y="96"  text-anchor="end" fill="#5a5a5a">77.5%</text>
+                    <text x="-8" y="141" text-anchor="end" fill="#5a5a5a">73.75%</text>
+                    <text x="-8" y="180" text-anchor="end" fill="#5a5a5a">70%</text>
 
-        <ol>
-            <li>Vanilla GPT-2, untrained on ProsQA, predicts the target class symbol with AUC 0.846. The trained matrix-CODI bottleneck reaches 0.673. The bottleneck is a strict compression of the hidden state through <span class="mono">w_up: Linear(768, 256)</span> → reshape → <span class="mono">w_down: Linear(256, 768)</span>, and that compression loses target-predictive information relative to the uncompressed hidden state. After fine-tuning on ProsQA, the compressed representation carries less target information than the uncompressed pretrained representation of the same input.</li>
-            <li>Per-position AUC peaks at <span class="mono">Z[1]</span> (0.693) and decays to <span class="mono">Z[5]</span> (0.633). Later latent positions encode less target-predictive information than earlier ones. A story in which the matrix thought deepens over successive latent steps would predict the opposite shape.</li>
-            <li>A binary target-vs-neg_target probe on the same <span class="mono">Z</span> tensors — asking whether the candidate that <span class="mono">Z</span> points to is the correct answer or the distractor in the diamond DAG — produces AUCs between 0.50 and 0.56 across all conditions. Chance. Matrix <span class="mono">Z</span> cannot distinguish the correct answer candidate from its negation.</li>
-        </ol>
+                    <!-- vanilla SFT reference at 81.77 -> y = (85-81.77)/15*180 = 38.76 -->
+                    <line x1="0" y1="38.76" x2="550" y2="38.76" stroke="#2E5E8B" stroke-width="1.2" stroke-dasharray="4,3"/>
+                    <text x="540" y="35" text-anchor="end" fill="#2E5E8B" font-size="10">vanilla SFT (no refinement) = 81.77%</text>
 
-        <p>The probe result is consistent with the rank-blindness derivation in §6. If the loss gradient cannot reward <span class="mono">Z</span>'s singular structure, the matrix ends up encoding whatever happens to satisfy <span class="mono">w_down</span>'s linear readout, which in this checkpoint is neither the target class nor the correct candidate identity. The bottleneck does not construct reasoning state; it compresses the question through a rank-agnostic linear map, and the compression loses information that the uncompressed pretrained hidden state already carries about the answer.</p>
+                    <!-- x positions for n=6/16/32/64 at log scale: 50, 200, 350, 500 -->
+                    <text x="50" y="200" text-anchor="middle" fill="#5a5a5a">n=6</text>
+                    <text x="200" y="200" text-anchor="middle" fill="#5a5a5a">n=16 (pending)</text>
+                    <text x="350" y="200" text-anchor="middle" fill="#5a5a5a">n=32 (pending)</text>
+                    <text x="500" y="200" text-anchor="middle" fill="#5a5a5a">n=64 (pending)</text>
+
+                    <!-- n=6 bar at 78.91 -> y = (85-78.91)/15*180 = 73.1, height 106.9 -->
+                    <rect x="25" y="73.1" width="50" height="106.9" fill="#8B2E1F" stroke="#1a1a1a" stroke-width="0.6"/>
+                    <text x="50" y="68" text-anchor="middle" font-size="10" fill="#1a1a1a">78.91%</text>
+
+                    <!-- pending placeholders -->
+                    <rect x="175" y="170" width="50" height="10" fill="#8B2E1F" fill-opacity="0.15" stroke="#1a1a1a" stroke-dasharray="2,2" stroke-width="0.6"/>
+                    <rect x="325" y="170" width="50" height="10" fill="#8B2E1F" fill-opacity="0.15" stroke="#1a1a1a" stroke-dasharray="2,2" stroke-width="0.6"/>
+                    <rect x="475" y="170" width="50" height="10" fill="#8B2E1F" fill-opacity="0.15" stroke="#1a1a1a" stroke-dasharray="2,2" stroke-width="0.6"/>
+
+                    <text x="275" y="230" text-anchor="middle" font-size="11" fill="#1a1a1a">number of latent refinement steps (vanilla CODI)</text>
+                    <text x="-52" y="90" text-anchor="middle" font-size="11" fill="#1a1a1a" transform="rotate(-90, -52, 90)">ProsQA best acc</text>
+                </g>
+            </svg>
+            <figcaption><span class="fig-label">figure 4</span>Depth sweep (vanilla CODI, no matrix bottleneck). At <span class="mono">n = 6</span> latent refinement steps the model reaches 78.91%, below the no-refinement vanilla SFT baseline (81.77%). The <span class="mono">n = 16, 32, 64</span> points re-run at smaller batches are pending and shown as translucent placeholders.</figcaption>
+        </figure>
+
+        <p>Two observations. First, adding iterative latent refinement at <span class="mono">n = 6</span> <em>hurts</em> ProsQA accuracy — the "more latent thought means better reasoning" story fails at this scale independently of the matrix question. Second, matrix-CODI tracks below vanilla SFT at both gpt2-small and gpt2-medium; we do not have the large matrix point yet. Vanilla SFT itself degrades at gpt2-large on ProsQA — we read that as a data-size artefact of ProsQA (17,886 training examples) under default AdamW at the larger backbone, not as a finding about superposition. Matrix-CODI does not rescue the regression.</p>
+
+        <h2><span class="num">07</span>What does <span class="mono">Z</span> encode, if not rank?</h2>
+
+        <p>If rank is not functional, we should ask what <em>is</em> encoded in the matrix thought. We ran a 5-fold cross-validated multi-class logistic regression to predict the ProsQA target class from a flattened <span class="mono">Z</span> on 500 held-out test problems. Controls: the same prompt's hidden state from a pretrained GPT-2 with no ProsQA fine-tuning, and the same model at random initialization.</p>
+
+        <figure>
+            <svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 640px; display: block; margin: 0 auto; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+                <rect x="0" y="0" width="680" height="280" fill="#FAF5E7"/>
+                <g transform="translate(70, 30)">
+                    <rect x="0" y="0" width="550" height="200" fill="none" stroke="#1a1a1a" stroke-width="1"/>
+                    <!-- y 0.4 to 1.0 AUC -->
+                    <text x="-8" y="5"   text-anchor="end" fill="#5a5a5a">1.00</text>
+                    <text x="-8" y="55"  text-anchor="end" fill="#5a5a5a">0.85</text>
+                    <text x="-8" y="105" text-anchor="end" fill="#5a5a5a">0.70</text>
+                    <text x="-8" y="155" text-anchor="end" fill="#5a5a5a">0.55</text>
+                    <text x="-8" y="200" text-anchor="end" fill="#5a5a5a">0.40</text>
+
+                    <!-- threshold line 0.896 -> y = (1.00-0.896)/0.60*200 = 34.67 -->
+                    <line x1="0" y1="34.67" x2="550" y2="34.67" stroke="#1a1a1a" stroke-width="1" stroke-dasharray="4,3"/>
+                    <text x="540" y="30" text-anchor="end" font-size="10" fill="#1a1a1a">pre-reg threshold 0.896</text>
+
+                    <!-- three bars: matrix Z 0.673 +/- 0.030; vanilla 0.846 +/- 0.026; random 0.495 +/- 0.031 -->
+                    <!-- positions 90, 275, 460 (centers) -->
+                    <!-- y for 0.673 -> (1-0.673)/0.6*200 = 109, height = 200-109 = 91 -->
+                    <!-- y for 0.846 -> (1-0.846)/0.6*200 = 51.33, height 148.67 -->
+                    <!-- y for 0.495 -> (1-0.495)/0.6*200 = 168.33, height 31.67 -->
+
+                    <rect x="50" y="109" width="80" height="91" fill="#8B2E1F" stroke="#1a1a1a" stroke-width="0.6"/>
+                    <text x="90" y="102" text-anchor="middle" font-size="10" fill="#1a1a1a">0.673</text>
+                    <!-- error whisker +/- 0.030 -> 10 px -->
+                    <line x1="90" y1="99" x2="90" y2="119" stroke="#1a1a1a" stroke-width="1"/>
+                    <line x1="85" y1="99" x2="95" y2="99" stroke="#1a1a1a" stroke-width="1"/>
+                    <line x1="85" y1="119" x2="95" y2="119" stroke="#1a1a1a" stroke-width="1"/>
+
+                    <rect x="235" y="51.33" width="80" height="148.67" fill="#2E5E8B" stroke="#1a1a1a" stroke-width="0.6"/>
+                    <text x="275" y="44" text-anchor="middle" font-size="10" fill="#1a1a1a">0.846</text>
+                    <line x1="275" y1="42.67" x2="275" y2="60" stroke="#1a1a1a" stroke-width="1"/>
+                    <line x1="270" y1="42.67" x2="280" y2="42.67" stroke="#1a1a1a" stroke-width="1"/>
+                    <line x1="270" y1="60" x2="280" y2="60" stroke="#1a1a1a" stroke-width="1"/>
+
+                    <rect x="420" y="168.33" width="80" height="31.67" fill="#5a5a5a" stroke="#1a1a1a" stroke-width="0.6"/>
+                    <text x="460" y="161" text-anchor="middle" font-size="10" fill="#1a1a1a">0.495</text>
+                    <line x1="460" y1="158" x2="460" y2="178" stroke="#1a1a1a" stroke-width="1"/>
+                    <line x1="455" y1="158" x2="465" y2="158" stroke="#1a1a1a" stroke-width="1"/>
+                    <line x1="455" y1="178" x2="465" y2="178" stroke="#1a1a1a" stroke-width="1"/>
+
+                    <!-- category labels -->
+                    <text x="90" y="220" text-anchor="middle" font-size="11" fill="#1a1a1a">matrix Z (concat)</text>
+                    <text x="275" y="220" text-anchor="middle" font-size="11" fill="#1a1a1a">vanilla GPT-2 hidden</text>
+                    <text x="460" y="220" text-anchor="middle" font-size="11" fill="#1a1a1a">random GPT-2 hidden</text>
+
+                    <text x="-52" y="100" text-anchor="middle" font-size="11" fill="#1a1a1a" transform="rotate(-90, -52, 100)">5-fold macro-averaged AUC</text>
+                </g>
+            </svg>
+            <figcaption><span class="fig-label">figure 5</span>Linear probe AUC for ProsQA target class prediction. Pre-registered threshold for a positive result was <span class="mono">max(vanilla, random) + 0.05 = 0.896</span>. The matrix <span class="mono">Z</span> concat AUC of 0.673 does not exceed it. Vanilla GPT-2 — never trained on ProsQA — predicts the target class better than the trained matrix-CODI bottleneck.</figcaption>
+        </figure>
 
         <div class="takeaway">
             <span class="label">result 3</span>
-            A linear probe on the Round 3 Run 1 matrix thought <span class="mono">Z</span> predicts the ProsQA target class with AUC 0.673, below the pre-registered threshold of 0.896 set by the vanilla pretrained GPT-2 hidden state (0.846). A binary probe distinguishing correct answer from distractor is at chance (0.50–0.56) across all conditions. The matrix bottleneck does not encode the answer.
+            The matrix-CODI bottleneck's Z concatenated across 6 positions (1536 features) reaches AUC 0.673 at predicting the ProsQA target class. Vanilla pretrained GPT-2, never trained on ProsQA, reaches 0.846 at 768 features. Despite having more features, the matrix bottleneck does not deliver target-predictive information commensurate with its feature count. A dimension-matched comparison is deferred to camera-ready.
         </div>
 
-        <h2><span class="num">06</span>Why the readout is rank-blind</h2>
+        <h2><span class="num">08</span>Positioning vs recent adjacent work</h2>
 
-        <p>The forward pass reads <span class="mono">Z</span> through exactly one operation: <span class="mono">h_out = w_down(Z.flatten())</span>, where <span class="mono">w_down</span> is a <span class="mono">Linear(d², D)</span> layer followed by a LayerNorm. Write <span class="mono">w = vec(W)</span> for the flattened weights and <span class="mono">z = vec(Z)</span> for the flattened thought. The readout is</p>
+        <p>Two 2026 February preprints measure rank in trained transformer states.</p>
 
-        <pre><code>h_out = LayerNorm(W · z + b)
-      = LayerNorm(Σ_ij W[:, ij] · Z[i, j] + b)</code></pre>
+        <p><strong>Nazari &amp; Rusch [9]</strong> measure the effective rank of <em>linear-attention fast-weight hidden states</em> — the <span class="mono">d × d</span> memory inside a linear attention layer — and propose post-training rank pruning of <span class="mono">K</span> and <span class="mono">Q</span> matrices. Their object of study is the fast-weight memory, not an explicit CoT latent, and their claim is descriptive: they observe rank structure, report a distribution, and prune.</p>
 
-        <p>Drop the LayerNorm for a moment (it is a post-hoc normalization that does not depend on <span class="mono">Z</span>'s singular structure). The map <span class="mono">Z ↦ W · vec(Z)</span> is linear in <span class="mono">Z</span>. Its Jacobian</p>
+        <p><strong>State Rank Dynamics [10]</strong> reports a "state-rank stratification" phenomenon during pretraining: linear-attention heads bifurcate into persistently low-rank and persistently high-rank groups. Object: fast-weight memory. Claim type: descriptive.</p>
 
-        <pre><code>∂h_out / ∂Z[i, j] = W[:, ij]        (constant tensor)</code></pre>
+        <p>This paper differs on two axes. First, the <em>object of study</em>: we measure rank in explicit matrix latent tokens on the feedback path of a matrix-CODI model, not in linear-attention fast-weight memories. Second, the <em>claim type</em>: we make a mechanism claim about the training objective (§3) and we test it by falsification using four nonlinear-in-<span class="mono">Z</span> positive controls (§5). A descriptive paper cannot make that claim. We are not the first to empirically measure rank in trained transformer states; those two papers do that for linear-attention states. We are the first, to our knowledge, to diagnose rank-blindness as a property of the readout-plus-objective and to falsifiably test that diagnosis.</p>
 
-        <p>does not depend on <span class="mono">Z</span>. The loss gradient with respect to <span class="mono">Z</span> at a given step is therefore</p>
+        <p>Three additional papers are relevant. Wang et al. (arXiv:2510.15522) propose latent reasoning is a superposition in <em>vocabulary column space</em>, not in Z's SVD basis — a distinct substrate our rank-k ablation does not test. Fan et al. (CVPR 2025, arXiv:2411.07635) show rank augmentation is achievable in linear attention for vision; our negative result is scoped to the readout-plus-objective family tested here. Li &amp; Janson (NeurIPS 2024, arXiv:2409.09951) show that zero/resample ablations overestimate component importance relative to optimal ablation; this cuts in our favor (optimal ablation would flatten curves further) and is the right methodological citation for the rank-k probe.</p>
 
-        <pre><code>∂L / ∂Z = (∂L / ∂h_out) · (∂h_out / ∂Z)
-        = some vector, contracted with a constant tensor</code></pre>
+        <p><strong>SIM-CoT [6]</strong> (Shen et al., ICLR 2026) diagnoses latent CoT instability as insufficient step-level supervision and proposes injecting per-step targets. Our diagnosis — rank-indifferent gradients from the CODI distillation objective — is different. The two are compatible and non-redundant: if SIM-CoT's diagnosis were the whole story, fixing the readout's Jacobian would shift <em>which</em> component of <span class="mono">Z</span> the gradient shapes; it would not eliminate rank-dependence entirely. Our positive controls falsify the simplest readout-only fix and are consistent with both mechanisms operating simultaneously.</p>
 
-        <p>which cannot depend on the singular structure of <span class="mono">Z</span> itself. From the optimizer's point of view, there is no gradient pressure that says "<span class="mono">Z</span> should have two independent singular directions rather than one." If the model can place its useful information in a single direction and still minimize the loss, it will, because that is the path of least resistance during training.</p>
+        <p><strong>Illusion of Superposition [8]</strong> reports the behavioral finding that fine-tuned latent reasoners do not need their latents on ProsQA (96.6% without, 99.0% with). We do not reproduce their number (our vanilla SFT reaches 81.77%), and the structural argument in §3 is independent of matching it. The two findings sit parallel: they establish that the latents are empirically not doing work; we establish that, specifically for matrix-valued latents trained with CODI distillation, the rank observable cannot do work even in principle, through any readout we tested.</p>
 
-        <p>That is exactly what we observe. Across every condition in Table 1, the mean effective rank rises during training (because the <span class="mono">w_up</span> projection is full-rank and noise alone produces non-degenerate matrices), but the <em>functionally used</em> rank is 1. Truncating to the top singular component preserves the accuracy because the top singular component is where the model put the answer.</p>
-
-        <p>The same argument closes off a larger family of readouts. Any function <span class="mono">f(Z)</span> that is linear in <span class="mono">Z</span> — or that factors through a linear map on a fixed-size space derived from <span class="mono">Z</span>, like a flatten, a reshape, or the symmetric Gram <span class="mono">ZZ<sup>⊤</sup></span> — has a Jacobian with respect to <span class="mono">Z</span> that is constant in <span class="mono">Z</span>. The loss gradient through any such readout cannot reward Z's singular structure. We call this <strong>rank-blindness by linear algebra</strong>.</p>
-
-        <div class="takeaway">
-            <span class="label">structural finding</span>
-            Any readout that is linear in <span class="mono">Z</span> has a Jacobian that is constant in <span class="mono">Z</span>, so the loss gradient carries no rank information. Bilinear K-probes, Frobenius-inner-product readouts, low-rank factored <span class="mono">w_down</span>, and per-vocab matrix LM heads all fall inside this family. Every one of them is rank-blind.
-        </div>
-
-        <h2><span class="num">07</span>Nine proposals, all killed by the same argument</h2>
-
-        <p>After Round 3 finished flat we ran an attack-agent waterfall on every candidate fix we could think of. Nine distinct architectural variants went in. None of them survived to a GPU launch. Each one failed for either the rank-blindness argument above, a different kind of linear-algebra mistake, or a capacity confound that made the resulting experiment unfalsifiable.</p>
-
-        <figure>
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>proposal</th>
-                        <th>fatal flaw</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>MNNS (minimum non-negative subset sum) task</td>
-                        <td>cited CoT2 repo does not exist; paper's 2<sup>t</sup> frontier is unpruned search tree, not ground truth; capacity bound falsified by construction at d=16</td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>k-bigram outer-product embedding</td>
-                        <td>destroys GPT-2 pretraining on the student side while teacher keeps it — L1 distillation becomes unachievable; rank-3 init mechanically guarantees Z rank ≥ 3 and creates an attribution confound</td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>low-rank <span class="mono">w_up = A · B</span></td>
-                        <td>math error: factoring w_up constrains the cross-batch subspace Z lives in, not the per-sample rank of any individual Z; at bottleneck k=1 the per-sample rank of Z is still up to d</td>
-                    </tr>
-                    <tr>
-                        <td>4</td>
-                        <td>K-probe bilinear readout (<span class="mono">Σ u<sub>i</sub><sup>⊤</sup> Z v<sub>i</sub></span>)</td>
-                        <td>each probe <span class="mono">u<sup>⊤</sup> Z v = ⟨u v<sup>⊤</sup>, Z⟩<sub>F</sub></span> is linear in Z; the full readout is a rank-<span class="mono">K</span> factorization of the existing <span class="mono">w_down</span>, strictly less expressive than what we already have</td>
-                    </tr>
-                    <tr>
-                        <td>5</td>
-                        <td>quadratic readout <span class="mono">tr(A<sub>i</sub> Z Z<sup>⊤</sup>)</span></td>
-                        <td>linear in the symmetric Gram <span class="mono">M = Z Z<sup>⊤</sup></span>; the model concentrates mass in M's top eigenvalue and reproduces rank-1 collapse; <span class="mono">Z Z<sup>⊤</sup></span> discards Z's right singular structure</td>
-                    </tr>
-                    <tr>
-                        <td>6</td>
-                        <td>per-sample <span class="mono">Z = U(h) · V(h)<sup>⊤</sup></span> rank-r constraint</td>
-                        <td>gradient still flows through the rank-blind <span class="mono">w_down</span>; training-time rank constraint changes shape but not signal; outcome is unfalsifiable at r=1 vs r=16</td>
-                    </tr>
-                    <tr>
-                        <td>7</td>
-                        <td>spectral polynomial readout <span class="mono">[tr(Z), tr(Z²), tr(Z³), tr(Z⁴)]</span></td>
-                        <td>4-scalar bottleneck is a ~200× capacity reduction; spectral features are orthogonally invariant and discard eigenvectors; rank-1 <span class="mono">Z = uv<sup>⊤</sup></span> can hit any feature vector via the scalar <span class="mono">v<sup>⊤</sup>u</span></td>
-                    </tr>
-                    <tr>
-                        <td>8</td>
-                        <td>end-to-end matrix LM head (per-vocab bilinear logits)</td>
-                        <td>each logit <span class="mono">⟨M<sub>w</sub>, Z⟩<sub>F</sub></span> is linear in Z; the full map is a single <span class="mono">Linear(d², |V|)</span> under relabeling; strictly a special case of K-probe</td>
-                    </tr>
-                    <tr>
-                        <td>9</td>
-                        <td>matrix-valued attention (d×d Q/K/V, Frobenius scores)</td>
-                        <td>mathematically identical to standard multi-head attention with head_dim = d² under reshape; output <span class="mono">w_out</span> flattens back to a vector, so the "matrix-ness" exists for one reshape then is destroyed</td>
-                    </tr>
-                </tbody>
-            </table>
-            <figcaption><span class="fig-label">table 4</span>Nine matrix-CODI variants we designed to break the rank-blindness and none of which survived pre-launch review. Full argument for each is in <span class="mono">matrix-thinking/KILL_LIST.md</span> in the project repo. The unifying observation is that all of them reduce to a linear-in-<span class="mono">Z</span> operation under reshape, and therefore inherit the same constant-Jacobian property that kills <span class="mono">w_down(Z.flatten())</span>.</figcaption>
-        </figure>
-
-        <p>The waterfall took about a day. Nothing in the table reached the GPU, and in retrospect that was the correct decision: eight of the nine would have produced another flat curve for the same reason Rounds 1–3 did, and the ninth (MNNS) was built on a paper that turned out to have a fabricated github link. The experiment budget was better spent running the vanilla SFT control in Round 4 than on any of these.</p>
-
-        <h2><span class="num">08</span>Four lessons</h2>
-
-        <p>Together the nine killed proposals and the four flat curves produce a compressed generalization of what broke. We record it in the project's KILL_LIST as four lessons; here is the short form.</p>
-
-        <ol>
-            <li><strong>Lesson 1 — linear-in-Z is rank-blind.</strong> Any operation whose Jacobian with respect to <span class="mono">Z</span> is constant in <span class="mono">Z</span> cannot produce rank-aware gradients. Flatten, reshape, Frobenius inner product, low-rank factorization of the readout weights, and symmetric <span class="mono">Z Z<sup>⊤</sup></span> all fall in this family.</li>
-            <li><strong>Lesson 2 — the model always finds the lowest-rank representation that satisfies the loss.</strong> Adding a more rank-aware readout does not force rank usage. It makes rank usage <em>possible</em>, and the model still picks the easiest path, which is rank-1.</li>
-            <li><strong>Lesson 3 — train-time rank constraints don't help.</strong> Forcing <span class="mono">Z</span> to be rank-<span class="mono">r</span> by parameterization does not change the gradient signal, so it does not change what the model chooses to put in those <span class="mono">r</span> components. A rank-<span class="mono">r</span> constrained <span class="mono">Z</span> with a rank-blind readout is equivalent to a rank-1 unconstrained one.</li>
-            <li><strong>Lesson 4 — rank discrimination requires one of four things.</strong> An explicit loss term that rewards or penalizes rank (unfalsifiable without care), a task whose ground truth provably requires <span class="mono">K</span> independent quantities and has no rank-1 shortcut (we have not yet found one at this scale), a different question entirely (probing what is <em>in</em> <span class="mono">Z</span> via interpretability), or a fundamentally different mechanism where matrix structure participates in the forward pass in a way that no linear map can flatten.</li>
-        </ol>
-
-        <h2><span class="num">09</span>Relation to prior work</h2>
-
-        <p>This note sits downstream of three lines of work and complements — rather than replicates — the empirical thread that matters most.</p>
-
-        <p><strong>The Illusion of Superposition? (Rizvi-Martel et al. [8], 2026).</strong> This is the load-bearing prior art. Their paper's headline empirical finding on ProsQA — 99.0% with latents, 96.6% <em>without</em> latents, 85.3% for explicit chain-of-thought — already establishes that the latent reasoning machinery contributes ~2.4 points on top of shortcut-fine-tuning and that the shortcut-fine-tuned model blows past explicit CoT by over 11 points. Their evidence comes from running the fine-tuned model with and without latent tokens, and from logit-lens and entity-level probing. <em>We do not claim the "latents are decorative" empirical result; it is theirs.</em> Our local same-distribution vanilla-SFT control in §4 is not a reproduction of their number — we sit ~15 points below their 96.6%, at a weaker operating point — and should not be cited as independent confirmation of their empirical finding.</p>
-
-        <p>What this note adds on top of [8] is a structural mechanism: a Jacobian-level argument that explains why, <em>within the matrix-valued bottleneck family</em>, no architecture whose readout reduces to a linear map on <span class="mono">vec(Z)</span> can use <span class="mono">Z</span>'s rank as a functional quantity, regardless of the task, the loss, or the readout's weight tying. The Illusion paper asks "are the latents doing work?" and answers empirically "no." We ask a narrower follow-up: "<em>could</em> a matrix-valued latent do work through its singular structure?" and answer structurally "no, not under any readout in the linear-in-<span class="mono">Z</span> family, by linear algebra." The two findings are compatible and independent: one is a behavioral test, the other is a calculation on the architecture.</p>
-
-        <p><strong>Reasoning by Superposition [3] and CoT2 [4].</strong> These papers motivate the rank-tracks-reasoning hypothesis from the theoretical side. [3] proves a capacity result (two layers + <span class="mono">D</span> continuous-thought steps solve graph reachability, where <span class="mono">D</span> is graph diameter) and provides small-scale empirical evidence that the learned solution uses superposition when a model is trained end-to-end on the task. Our setup is different along multiple axes: pretrained backbone, ProsQA / GSM8K-Aug rather than graph reachability, CODI-style L1-at-colon distillation, and — critically — the rank-blindness we identify comes from the <em>matrix bottleneck's readout</em>, not from the underlying transformer. A standard vector transformer on a standard training regime has no matrix to read or misread. Our negative result is specifically about whether matrix rank can <em>measure</em> superposition under a flatten-then-project architecture, not a disproof that superposition ever occurs. Our experiments always start from pretrained GPT-2; the from-scratch regime of [8] (which is the only regime where they found positive evidence for superposition) and the end-to-end regime of [3] are distinct questions and we have not run them.</p>
-
-        <p><strong>What's new here, precisely.</strong> The structural argument in §6 is, as far as we can find, not in the literature. Prior negative results in latent CoT have reported that accuracy fails to track the theoretical construction, or that probing reveals shortcut behavior. We give a reason at the linear-algebra level: any readout whose Jacobian with respect to the matrix thought is constant in the thought cannot produce a gradient that rewards the thought's singular structure. Rank-blindness is a property of the architecture family, not a property of the training procedure, the task, or the loss weighting. This is the piece that the empirical thread ([8]) does not supply and that this note adds.</p>
-
-        <h2><span class="num">10</span>What this result is, precisely</h2>
-
-        <p>Stated narrowly so the claim is defensible:</p>
+        <h2><span class="num">09</span>Limitations</h2>
 
         <ul>
-            <li><strong>Empirical (local, our pipeline only).</strong> At GPT-2 small scale (124M backbone), on GSM8K-Aug and ProsQA, with <span class="mono">d = 16</span> matrix thoughts, across four combinations of distillation weight and multiplicative thinker, the rank-<span class="mono">k</span> projection ablation curve is flat within 0.6 percentage points and the Spearman rank correlation between per-sample effective rank and correctness is within ±0.11 of zero with inconsistent sign. Inside the same pipeline, a vanilla GPT-2 supervised fine-tune with no latents, no distillation, and no matrix matches the best matrix-CODI run within 0.26 percentage points averaged over three seeds. Both matrix-CODI and our vanilla SFT sit ~15 points below the published state of the art on ProsQA [8] and ~36 points below on GSM8K [5].</li>
-            <li><strong>Structural (the contribution).</strong> The forward pass reads <span class="mono">Z</span> through a linear-in-<span class="mono">Z</span> map, whose Jacobian is constant in <span class="mono">Z</span>, so the loss gradient cannot reward rank. Any readout whose Jacobian with respect to <span class="mono">Z</span> is constant in <span class="mono">Z</span> — including all eight of the non-MNNS variants in Table 4 — inherits the same property. The structural argument does not depend on our operating point, our training procedure, our tasks, or our loss weighting. It is a statement about the architecture family.</li>
+            <li><strong>Single task family at the main operating point.</strong> All core experiments use ProsQA. GSM8K-Aug shows a flat rank-<span class="mono">k</span> curve at 6% accuracy, a low-accuracy regime where the model is barely learning the task; we do not read it as strong standalone evidence. A higher-accuracy GSM8K cross-dataset run is queued.</li>
+            <li><strong>Single architecture family.</strong> All runs on GPT-2. The structural mechanism is architecture-agnostic, but the empirical evidence covers only GPT-2 small/medium/large.</li>
+            <li><strong>One seed per positive control.</strong> The four readout variants in §5 were trained once. Seed variation across the three-seed flatten replication is 1.2 pp, well below the room within which a non-flat curve would announce itself, so we do not expect the qualitative picture to change; but a three-seed per-variant run would narrow confidence intervals.</li>
+            <li><strong>Effective rank, not exact rank.</strong> We report effective rank (exp of singular-value entropy) and use hard SVD truncation for the ablation. The conclusion is robust to this choice — the ablation directly tests whether the rest of <span class="mono">Z</span>'s spectrum carries functional information — but readers should note the distinction.</li>
+            <li><strong>Seed-dependent <span class="mono">Z</span> rank is itself a finding.</strong> The 3× rank spread at matched accuracy (Fig. 1) is not just a consistency check on the rank-<span class="mono">k</span> ablation; it is a distinct empirical observation worth exploring in its own right. A designer who wants a controlled-rank <span class="mono">Z</span> likely cannot get it without changing the objective.</li>
         </ul>
 
-        <p>What the result does <em>not</em> say:</p>
+        <h2><span class="num">10</span>Reproducibility</h2>
+
+        <p>Code, rank-eval JSONs, and the experiment log are in the public repo:</p>
 
         <ul>
-            <li>It does not say that fine-tuned latent reasoners are empirically decorative on ProsQA. That claim is due to Rizvi-Martel et al. [8] at a stronger operating point. Our local control is consistent with it, but does not establish it; the baseline gap in §11 is too large for us to make that claim independently.</li>
-            <li>It does not say that continuous chain-of-thought models in general fail to use superposition. The from-scratch regime of [8] is evidence that they can, in the right setting.</li>
-            <li>It does not say that matrix-valued representations are useless. Our earlier outer-product embedding result [see <a href="outer-product-embedding.html">outer-product embedding</a>] shows that matrix representations can beat flat vectors per parameter by 11× at single-step processing. The negative result here is specifically about <em>rank as a functional observable in a flatten-then-project readout</em>, not about matrix structure overall.</li>
-            <li>It does not say that ProsQA is unsolvable by structured reasoning. It says the structured reasoning machinery in our specific stack, under a linear-in-<span class="mono">Z</span> readout, cannot use <span class="mono">Z</span>'s rank to do the solving.</li>
-            <li>It does not generalize beyond GPT-2 small. The rank-blindness argument holds at any scale, but the question of whether the <em>claim</em> would matter — whether rank is the quantity that carries parallel reasoning state — is open at larger scale and under architectures outside the linear-in-<span class="mono">Z</span> readout family.</li>
+            <li>Training script: <a href="https://github.com/saml212/learned-representations/blob/main/matrix-thinking/scripts/run_matrix_codi.py"><span class="mono">matrix-thinking/scripts/run_matrix_codi.py</span></a>. The <span class="mono">MatrixBottleneck</span> class implements the <span class="mono">w_up → reshape → thinker → flatten → w_down</span> pipeline. All five readouts in §5 are selectable via the <span class="mono">--readout</span> flag.</li>
+            <li>Linear probe: <a href="https://github.com/saml212/learned-representations/blob/main/matrix-thinking/scripts/probe_z.py"><span class="mono">matrix-thinking/scripts/probe_z.py</span></a>.</li>
+            <li>Raw rank-<span class="mono">k</span> evaluation JSONs (Fig. 2 and Table 2): <a href="https://github.com/saml212/learned-representations/tree/main/experiment-runs/2026-04-17_round_pc/rank_evals"><span class="mono">experiment-runs/2026-04-17_round_pc/rank_evals/</span></a>.</li>
+            <li>Experiment log with per-run hyperparameters, rank trajectories, wall times: <a href="https://github.com/saml212/learned-representations/blob/main/EXPERIMENT_LOG.md"><span class="mono">EXPERIMENT_LOG.md</span></a>.</li>
+            <li>Kill list with the linear-algebra argument against killed architectural variants: <a href="https://github.com/saml212/learned-representations/blob/main/matrix-thinking/KILL_LIST.md"><span class="mono">matrix-thinking/KILL_LIST.md</span></a>.</li>
+            <li>Bilinear readout patch plan and rationale: <a href="https://github.com/saml212/learned-representations/blob/main/matrix-thinking/BILINEAR_READOUT_PATCH_PLAN.md"><span class="mono">matrix-thinking/BILINEAR_READOUT_PATCH_PLAN.md</span></a>.</li>
+            <li>ProsQA: <a href="https://github.com/facebookresearch/coconut">facebookresearch/coconut</a> release. GSM8K-Aug: <a href="https://huggingface.co/datasets/whynlp/gsm8k-aug">whynlp/gsm8k-aug</a>. Backbones: <a href="https://huggingface.co/gpt2">gpt2</a>, <a href="https://huggingface.co/gpt2-medium">gpt2-medium</a>, <a href="https://huggingface.co/gpt2-large">gpt2-large</a>.</li>
         </ul>
-
-        <h2><span class="num">11</span>Caveats and limitations</h2>
-
-        <p>This note is a research note, not a peer-reviewed paper. The absolute numbers:</p>
-
-        <ul>
-            <li><strong>Our ProsQA baseline is ~15 points below the published state of the art.</strong> Rizvi-Martel et al. [8] report 96.6% for fine-tuned COCONUT without latent tokens on ProsQA. Our vanilla GPT-2 supervised fine-tune reaches 81.77% (three-seed mean). Our best matrix-CODI run reaches 82.03%. We have not closed this gap. Possible reasons include different hyperparameters, shorter training, different prompt formatting, different evaluation protocol, and possibly different data preprocessing; we have not done the systematic ablation that would identify which. We do <em>not</em> claim to have reproduced the Illusion of Superposition baseline, and nothing in the structural argument of §6 depends on matching their number. If a reviewer reads Result 2 as "the latents are decorative on ProsQA," they should read that claim as already made by [8] at a much stronger operating point, not as something this note establishes independently.</li>
-            <li><strong>Our GSM8K-Aug number is ~36 points below published CODI.</strong> CODI [5] reports 43.7% on GSM8K; our Round 1 Run A (vanilla CODI setup, same codebase as the matrix runs) reached 7.00%. The gap is large enough that GSM8K-Aug in our setup should be read as a low-accuracy regime in which the model is barely learning the task at all, not as a reproduction of any published result. The only claim we make on GSM8K-Aug is Table 1's flat rank-<span class="mono">k</span> curve at that low-accuracy operating point.</li>
-            <li><strong>The negative result is robust to seed variance within our setup, but our setup is at a weaker operating point than the literature.</strong> The flat rank-<span class="mono">k</span> curves in Table 1 and the matching of matrix-CODI and vanilla SFT in Table 2 are reliable statements about <em>our specific training pipeline</em>. A reader should not conclude from them alone that the stronger-operating-point results of [8] would look the same under our measurements, because we do not have data in that regime. What we do claim is that the structural argument in §6 would apply at any operating point under any linear-in-<span class="mono">Z</span> readout, because it is a statement about Jacobians, not about training curves.</li>
-            <li><strong>Single backbone.</strong> Everything runs on GPT-2 small 124M. The literature's strongest positive evidence for superposition in continuous thought comes from models of comparable scale trained from scratch on the reasoning task. A larger backbone would change the accuracy floor but not the structural argument.</li>
-            <li><strong>Two tasks.</strong> GSM8K-Aug and ProsQA were chosen because one is arithmetic and one is logical reasoning. Both are tasks where the theoretical superposition story should matter. A synthetic task whose ground truth provably requires <span class="mono">K</span> linearly independent quantities would be a stronger test of the hypothesis itself. We have not yet built such a task at the right scale (see Lesson 4 and the MNNS failure in Table 4).</li>
-            <li><strong>Effective rank, not exact rank.</strong> We use the exponential of singular-value entropy as a smooth proxy for rank. All our conclusions would be the same under a hard singular-value threshold, but effective rank is the differentiable version that training-time probes require.</li>
-            <li><strong>Sample efficiency (Round 5) and scale grid (Round 6) are in flight.</strong> Round 5 tests whether matrix-CODI is more sample-efficient than vanilla SFT in the low-data regime (where the matrix bottleneck's inductive bias might contribute even if it does not help at saturation). Round 6 sweeps <span class="mono">d ∈ {16, 32, 64}</span> to rule the matrix dimension in or out as a capacity confound. Neither experiment changes the Jacobian argument in §6 — which does not depend on our operating point — but both give the architecture additional chances to show a benefit we missed. Results will be added to this note when both complete.</li>
-        </ul>
-
-        <h2><span class="num">12</span>What we would try next</h2>
-
-        <p>Given the rank-blindness argument, the surviving paths fall cleanly into four categories:</p>
-
-        <ol>
-            <li><strong>A different question.</strong> Replace "does rank track reasoning?" with "what is encoded in <span class="mono">Z</span>?" via linear probing, entity-level probing, or causal interventions. This is the move the <em>Illusion of Superposition</em> paper makes, and our negative result suggests it is the more productive question at this scale.</li>
-            <li><strong>An explicit rank-aware objective.</strong> Train with a nuclear-norm or effective-rank term in the loss, at varying coefficient, and measure whether the induced rank changes accuracy on tasks whose solutions plausibly need multiple components. This is "unfalsifiable" in the cheap sense — of course rank goes up if you reward it — but it can be designed to test the stronger claim: that rewarding rank improves accuracy on the right kind of task, while hurting it on the wrong kind. That would be real evidence that rank is functional somewhere.</li>
-            <li><strong>A task whose ground truth provably requires multiple independent quantities.</strong> Synthetic reasoning problems where the solution has a verifiable <span class="mono">K</span>-frontier and no rank-1 shortcut. Designing these without the MNNS trap is open work.</li>
-            <li><strong>A different mechanism entirely.</strong> Matrix structure that participates in the forward pass in a way no linear map can flatten. The killed matrix-valued attention (#9) and matrix LM head (#8) were attempts at this that didn't survive the waterfall; a surviving version would need a non-linearity that acts on the matrix <em>as a matrix</em> rather than on its flattened vector form. We don't currently have a specific proposal here; it is marked as a longer-horizon direction.</li>
-        </ol>
-
-        <p>None of these rescues the rank-as-superposition framing on its own. They give the hypothesis additional chances to produce a positive signal. If none of them do, the conclusion stands: the matrix-CODI program as originally framed was wrong about what rank measures, and the structural argument in §6 tells us why.</p>
-
-        <h2><span class="num">13</span>Reproducibility</h2>
-
-        <p>Code and data for this note:</p>
-
-        <ul>
-            <li>Training script: <a href="https://github.com/saml212/learned-representations/blob/main/matrix-thinking/scripts/run_matrix_codi.py"><span class="mono">matrix-thinking/scripts/run_matrix_codi.py</span></a>. The <span class="mono">MatrixBottleneck</span> class at line 213 is the structural core; it implements the <span class="mono">w_up → reshape → thinker → flatten → w_down → LayerNorm</span> pipeline described in §2.</li>
-            <li>Linear probe script (Result 3): <a href="https://github.com/saml212/learned-representations/blob/main/matrix-thinking/scripts/probe_z.py"><span class="mono">matrix-thinking/scripts/probe_z.py</span></a>.</li>
-            <li>Vanilla SFT control script (Result 2): <span class="mono">matrix-thinking/scripts/run_vanilla_sft.py</span>. The script currently lives on the H100 pod and will be mirrored to the public repo with the Round 5 / Round 6 batch.</li>
-            <li>Experiment log with per-run hyperparameters, rank trajectories, and wall-clock times across all rounds: <a href="https://github.com/saml212/learned-representations/blob/main/EXPERIMENT_LOG.md"><span class="mono">EXPERIMENT_LOG.md</span></a>.</li>
-            <li>Kill list with the linear-algebra argument against each of the nine variants in Table 4: <a href="https://github.com/saml212/learned-representations/blob/main/matrix-thinking/KILL_LIST.md"><span class="mono">matrix-thinking/KILL_LIST.md</span></a>.</li>
-            <li>ProsQA dataset: downloaded from the <a href="https://github.com/facebookresearch/coconut">facebookresearch/coconut</a> GitHub repo.</li>
-            <li>GSM8K-Aug dataset: <a href="https://huggingface.co/datasets/whynlp/gsm8k-aug">whynlp/gsm8k-aug</a> on Hugging Face.</li>
-            <li>Pretrained backbone: <a href="https://huggingface.co/gpt2">gpt2</a> on Hugging Face (GPT-2 small, 124M parameters).</li>
-            <li>Checkpoints used in this note (Round 2 Run B, Round 3 Run 1, Round 3 Run 2) will be mirrored to a public Hugging Face repo once Rounds 5 and 6 finalize.</li>
-            <li>Round 5 (sample efficiency sweep) and Round 6 (GPT-2 medium scale grid) are in flight. Their results will be added to this note when they land.</li>
-        </ul>
-
-        <p>Local run directories on our hardware: <span class="mono">/Volumes/1TB_SSD/learned-representations/experiment-runs/2026-04-12_round2_prosqa/</span> and the Round 3 / Round 4 sibling directories. These are not public; the GitHub links above point to the scripts and logs, which are.</p>
 
         <div class="references">
             <h2>References</h2>
@@ -932,10 +858,19 @@ return h_out, Z                        # h_out feeds the next step;
                 <li>Hao, S., Sukhbaatar, S., Su, D., Li, X., Hu, Z., Weston, J., &amp; Tian, Y. (2024). <em>Training large language models to reason in a continuous latent space (COCONUT).</em> arXiv:2412.06769</li>
                 <li>Zhu, H., Hao, S., Hu, Z., Jiao, J., Russell, S., &amp; Tian, Y. (2025). <em>Reasoning by Superposition: A Theoretical Perspective on Chain of Continuous Thought.</em> NeurIPS 2025. arXiv:2505.12514</li>
                 <li>Gozeten, A., Ildiz, M. E., Zhang, Y., Harutyunyan, H., Rawat, A. S., &amp; Oymak, S. (2025). <em>Continuous Chain of Thought Enables Parallel Exploration and Reasoning (CoT2).</em> arXiv:2505.23648</li>
-                <li>Shen, Z., et al. (2025). <em>CODI: Compressing Chain-of-Thought into Continuous Space via Self-Distillation.</em> EMNLP 2025. arXiv:2502.21074. Code: <a href="https://github.com/zhenyi4/codi">github.com/zhenyi4/codi</a></li>
-                <li>Fedorenko, E., Piantadosi, S. T., &amp; Gibson, E. (2024). <em>Language is primarily a tool for communication rather than thought.</em> Nature.</li>
-                <li>He, Y., et al. (2025). <em>HELM: Hyperbolic Large Language Models via Mixture-of-Curvature Experts.</em> NeurIPS 2025. arXiv:2505.24722</li>
-                <li>(2026). <em>The Illusion of Superposition? A Principled Analysis of Latent Thinking in Language Models.</em> arXiv:2604.06374</li>
+                <li>Shen, Z., Yan, H., Zhang, L., Hu, Z., Du, Y., &amp; He, Y. (2025). <em>CODI: Compressing Chain-of-Thought into Continuous Space via Self-Distillation.</em> EMNLP 2025. arXiv:2502.21074</li>
+                <li>Shen, Z., et al. (2026). <em>SIM-CoT: Step-level Implicit Supervision for Continuous Chain of Thought.</em> ICLR 2026. arXiv:2509.20317</li>
+                <li>(2026). <em>Dynamics Within Latent Chain of Thought.</em> arXiv:2602.08783</li>
+                <li>Rizvi-Martel et al. (2026). <em>The Illusion of Superposition? A Principled Analysis of Latent Thinking in Language Models.</em> arXiv:2604.06374</li>
+                <li>Nazari, P., &amp; Rusch, T. K. (2026). <em>The Key to State Reduction in Linear Attention: A Rank-based Perspective.</em> arXiv:2602.04852</li>
+                <li>(2026). <em>State Rank Dynamics in Linear Attention LLMs.</em> arXiv:2602.02195</li>
+                <li>Gunasekar, S., et al. (2017). <em>Implicit Regularization in Matrix Factorization.</em> NeurIPS 2017. arXiv:1705.09280</li>
+                <li>Arora, S., Cohen, N., Hu, W., &amp; Luo, Y. (2019). <em>Implicit Regularization in Deep Matrix Factorization.</em> NeurIPS 2019. arXiv:1905.13655</li>
+                <li>Razin, N., &amp; Cohen, N. (2020). <em>Implicit Regularization in Deep Learning May Not Be Explainable by Norms.</em> NeurIPS 2020. arXiv:2005.06398</li>
+                <li>Kobayashi, S., Akram, Y., &amp; von Oswald, J. (2024). <em>Weight Decay Induces Low-Rank Attention Layers.</em> NeurIPS 2024. arXiv:2410.23819</li>
+                <li>Anonymous (2025). <em>Latent Reasoning in LLMs as a Vocabulary-Space Superposition.</em> arXiv:2510.15522</li>
+                <li>Fan, Q., Huang, H., &amp; He, R. (2025). <em>Breaking the Low-Rank Dilemma of Linear Attention.</em> CVPR 2025. arXiv:2411.07635</li>
+                <li>Li, M., &amp; Janson, L. (2024). <em>Optimal Ablation for Interpretability.</em> NeurIPS 2024. arXiv:2409.09951</li>
             </ol>
         </div>
 

@@ -590,9 +590,9 @@ footer a { color: var(--accent); }
         <div class="results">
             <a class="result" href="findings/matrix-codi-rank-blindness.html">
                 <div class="body">
-                    <div class="result-date">no. 05 &nbsp;·&nbsp; april 14, 2026</div>
-                    <h4>Matrix-CODI is decorative: four flat curves and a linear-algebra reason</h4>
-                    <p>A fork of CODI with a 16×16 matrix bottleneck at each latent reasoning step. Four flat rank-<span class="mono">k</span> projection curves across two tasks, two distillation regimes, two thinker settings. A three-seed vanilla supervised fine-tune matches matrix-CODI within 0.26 points. The forward pass reads <span class="mono">Z</span> through <span class="mono">w_down(Z.flatten())</span>, a linear map whose Jacobian is constant in <span class="mono">Z</span>; no gradient can reward the singular structure. Nine architectural fixes all reduce to the same form under reshape. Adjudicates the Reasoning by Superposition vs Illusion of Superposition dispute at a mechanistic level. Read the research note →</p>
+                    <div class="result-date">no. 05 &nbsp;·&nbsp; april 21, 2026</div>
+                    <h4>The gradient does not see rank: rank-indifference in matrix-CODI on ProsQA</h4>
+                    <p>A fork of CODI with a 16×16 matrix bottleneck at each latent reasoning step. Four flat rank-<span class="mono">k</span> projection curves across two tasks and two distillation regimes; a three-seed replication shows accuracy tight at <span class="mono">81.51 ± 1.2</span>pp while the final effective rank of <span class="mono">Z</span> spans <span class="mono">{4, 12, 13}</span>. A four-readout positive control — bilinear, bilinear+GELU, SVD-augmented, quadratic — was designed to falsify the hypothesis that readout linearity causes the flat curves; all four readouts produce flat curves regardless. A negative control on vanilla GPT-2 SFT (no matrix bottleneck, no <span class="mono">Z</span>) reproduces a flat curve under the same intervention paradigm and demonstrates the rank-<span class="mono">k</span> probe alone conflates rank-blindness with position-irrelevance. The model-level distinguisher is the seed-decoupling result, which the negative control cannot produce by construction. Read the research note →</p>
                 </div>
                 <span class="meta">negative · structural</span>
             </a>

@@ -516,8 +516,8 @@ footer a { color: var(--accent); }
 <section class="hero">
     <div class="container">
         <p class="kicker">let them eat bytes<span class="period">.</span></p>
-        <h1 class="pull">I measure reasoning capacity inside language models by giving them matrix-valued tokens.</h1>
-        <p class="thesis">A matrix has rank. A vector does not. Rank is a differentiable structural property of a single representation, and it bounds how many reasoning paths a model can hold in superposition during inference-time compute. I test whether matrix rank correlates with the number of reasoning paths a continuous-reasoning model actually holds — a question the theoretical literature has asked and no empirical work has answered. Along the way I build structured representations for byte-level models because bytes are where the field is moving and they need something language-tokenizers have been providing as a crutch.</p>
+        <h1 class="pull">Modern language models work around the medium they compute on — subword tokens for input, flat vectors for representation, and discrete-token chain-of-thought for reasoning. I'm replacing all three.</h1>
+        <p class="thesis">Three parallel threads. <strong>Bytes</strong> replace the tokenizer, so the model sees the same stream the hardware does. <strong>Matrix-valued tokens</strong> replace flat vectors, giving every representation differentiable structural observables — rank, singular values — that a <span class="mono">d</span>-dimensional vector cannot expose. <strong>Continuous reasoning with matrix-tracked superposition</strong> replaces discrete chain-of-thought, so the number of reasoning paths a model holds at inference is measurable from a single sample rather than estimated across an ensemble. Early evidence: outer-product matrix embeddings cut per-parameter perplexity <span class="mono">11×</span> against flat vectors at matched parameters; a matrix transformer layer at <span class="mono">d = 16</span> uses <span class="mono">130×</span> fewer parameters than vector attention at matched capacity. The first matrix-CODI experiment falsified one operationalization of rank-tracked superposition under a distillation objective and shipped a mechanism explaining why; the next runs the test on a matrix-native model trained from scratch.</p>
         <p class="status-line">matrix-CODI complete &nbsp;·&nbsp; findings being published</p>
     </div>
 </section>
@@ -525,54 +525,44 @@ footer a { color: var(--accent); }
 <!-- ────── progression ────── -->
 <section id="progression">
     <div class="container">
-        <div class="eyebrow">the through line</div>
-        <h2 class="section-title">Three steps. If each works, the next one becomes possible.</h2>
-        <p class="lede">Byte-level processing is where the field is moving and it has specific problems. Matrix-valued representations address those problems and give a structural observable no prior approach has. That observable makes a new kind of inference-time reasoning possible: machine-native, structured, measurable.</p>
+        <div class="eyebrow">the three threads</div>
+        <h2 class="section-title">Three parallel threads. The lab is built on the claim that they compose.</h2>
+        <p class="lede">Each thread is independently testable and has its own near-term experiment. The compound claim is that bytes give a substrate, matrices give a representation with single-sample structural observables, and continuous reasoning over those matrices yields inference-time compute whose internals are directly measurable rather than inferred.</p>
 
         <div class="stages">
             <div class="stage">
                 <div class="num-block">
                     <span class="big">01</span>
-                    the problem
+                    bytes
                 </div>
                 <div>
-                    <h3>Byte-level processing has specific problems.</h3>
-                    <p>Byte-level models are where the field is going. Meta replaced Chameleon (a VQ-tokenized multimodal model) with BLT (byte-level, tokenizer-free). DINOv3 showed self-supervised visual learning without language supervision matches CLIP at scale. EvaByte, MambaByte, and MBLM have all demonstrated byte-level models that work. But bytes introduce three specific problems:</p>
-                    <ul>
-                        <li>Extreme context length. Bytes are ~3.5× more numerous than subword tokens for the same text, and far more numerous for audio and video.</li>
-                        <li>Computational efficiency. Standard O(L²) attention falls over at byte scale.</li>
-                        <li>Bytes are hard to relate to each other. A single byte carries very little signal. Most of the meaning lives in the relationships between bytes in a window, and flat-vector models have to rediscover those relationships implicitly at every layer.</li>
-                    </ul>
-                    <p>The third problem is the one I focus on.</p>
+                    <h3>Replace the tokenizer.</h3>
+                    <p>Subword tokenization is a learned compression layer between text and the model. It carries assumptions — language-shaped, English-shaped, web-shaped — and rules out raw audio waveforms, raw pixels, and arbitrary binary formats without a separate encoder per modality. Byte-level models drop that layer. BLT (Meta, 2024) replaced Chameleon's VQ tokenizer with byte patches at 8B parameters; EvaByte and MambaByte demonstrated byte-level processing at smaller scale.</p>
+                    <p>Bytes introduce three implementation costs: sequence length grows ~3.5× over subword tokens for the same text and orders of magnitude more for audio and video, standard <span class="mono">O(L²)</span> attention does not scale to byte-length contexts, and a single byte carries near-zero signal so the model must reconstruct relational structure at every layer. The third cost is what motivates Stage 02.</p>
                 </div>
             </div>
 
             <div class="stage">
                 <div class="num-block">
                     <span class="big">02</span>
-                    the answer
+                    matrices
                 </div>
                 <div>
-                    <h3>Matrix-valued tokens carry relational structure in the representation itself.</h3>
-                    <p>A matrix-valued token representation carries relational structure directly in the token. Each token is a <span class="mono">d × d</span> matrix whose entries can encode learned pairwise interactions between bytes in a local window. The model no longer has to rediscover those relationships implicitly at every layer. In my experiments, outer-product matrix embeddings cut per-parameter perplexity by 11× at matched parameters against flat vectors — see <a href="findings/outer-product-embedding.html">findings / outer-product embedding</a>.</p>
-                    <p>Two properties of matrices matter for this:</p>
-                    <ul>
-                        <li><strong>Rank</strong> is a measurable, differentiable observable. It quantifies how many independent patterns a representation encodes. Rank can be computed from a single matrix; for a flat vector, it can only be estimated across an ensemble.</li>
-                        <li><strong>Structure</strong> provides inductive bias. Recent evidence at this compute regime favors structured representations (HELM hyperbolic LLM at billion-parameter scale, equivariant transformers at matched compute), and the structured-architecture side now has existence proofs in language modeling where none existed two years ago.</li>
-                    </ul>
-                    <p>The contextualized matrix embedding is a specific realization of this. Instead of each token being a rank-1 outer product (the current baseline), each token's matrix encodes learned pairwise interactions across a 16-byte window. The embedding carries relational structure from the input layer.</p>
+                    <h3>Replace flat vectors with <span class="mono">d × d</span> matrices.</h3>
+                    <p>A matrix has rank, condition number, and singular values; a flat vector of the same dimension has none of these as differentiable observables. A <span class="mono">d²</span>-dim vector and a <span class="mono">d × d</span> matrix carry the same number of scalars, but only the matrix exposes structure that downstream operations can preserve or destroy. The architectural commitment: every primitive in the model — embedding, attention, FFN, output head — operates on matrices without flattening. Composition is matrix multiplication, attention scores are Frobenius inner products, the output head is a bilinear probe.</p>
+                    <p>Two findings make this load-bearing. Outer-product matrix embeddings beat flat-vector embeddings by <span class="mono">11×</span> in per-parameter perplexity at matched parameters (<a href="findings/outer-product-embedding.html">Finding no. 01</a>). A matrix transformer layer at <span class="mono">d = 16</span> uses <span class="mono">130×</span> fewer parameters than a standard vector attention layer at matched capacity (<a href="findings/parameter-efficiency.html">Finding no. 04</a>), shifting the parameter budget from embeddings to thinking layers.</p>
                 </div>
             </div>
 
             <div class="stage">
                 <div class="num-block">
                     <span class="big">03</span>
-                    what it unlocks
+                    superposition
                 </div>
                 <div>
-                    <h3>Matrix structure makes inference-time reasoning measurable.</h3>
-                    <p>Continuous-reasoning models like COCONUT (Meta 2024) and CODI (Meta 2025) are the closest thing to machine-native inference-time compute. They let the model "think" by generating latent representations before producing an output. The theoretical claim from the 2025 literature (Reasoning by Superposition, CoT2) is that these latent states hold multiple reasoning paths in superposition. The empirical problem: nobody has measured the structural property the claim describes. A 2026 rebuttal (Illusion of Superposition, arXiv 2604.06374) argues the superposition might be an artifact of how outputs are interpreted.</p>
-                    <p>Matrix tokens make the measurement possible. If a matrix of rank <span class="mono">r</span> holds <span class="mono">r</span> linearly independent patterns by construction, then tracking rank during reasoning tracks the number of paths the model holds. The next experiment tests exactly this, and can settle the published dispute.</p>
+                    <h3>Make the number of reasoning paths a single-sample observable.</h3>
+                    <p>Continuous chain-of-thought models — COCONUT (Meta, 2024), CODI (Meta, 2025) — feed back continuous latent vectors instead of discrete tokens, letting the model perform inference-time compute internally. The theoretical claim (<em>Reasoning by Superposition</em>, <em>CoT2</em>, 2025) is that these latents hold multiple reasoning paths in superposition, exploring a search tree in parallel. A 2026 rebuttal (<em>Illusion of Superposition</em>, arXiv 2604.06374) showed that on ProsQA the latent feedback is not doing measurable work in some fine-tuned settings.</p>
+                    <p>The dispute is empirical and the obstacle is measurement: superposition is a property of the representation, but a flat vector exposes no single-sample structure to probe. A matrix does. If a <span class="mono">d × d</span> thought <span class="mono">Z</span> holds <span class="mono">k</span> linearly independent patterns, its rank is <span class="mono">k</span> by construction, and rank is computable from a single sample via SVD. The matrix-CODI experiment built that probe and ran the falsification. The result: rank-<span class="mono">k</span> ablation curves are flat across two tasks and four readout designs, and best ProsQA accuracy decouples from final effective rank across seeds (<span class="mono">81.51 ± 1.2pp</span> at ranks <span class="mono">{4, 12, 13}</span>). The CODI training objective produces rank-indifferent gradients through the full chain rule. The next experiment moves the test off CODI distillation onto a matrix-native model trained from scratch on a synthetic task with provably <span class="mono">K</span>-path structure.</p>
                     <p class="aside">Supporting framing: Fedorenko et al. (<em>Nature</em>, 2024) dissociates the human language network from reasoning, math, and theory of mind — evidence that reasoning can run on representations that are not language-shaped.</p>
                 </div>
             </div>
@@ -658,7 +648,7 @@ footer a { color: var(--accent); }
             <div class="phase">
                 <div class="step">now →</div>
                 <h4>Matrix-native from scratch on a rank-K task</h4>
-                <p>The matrix-CODI negative result localized the failure to the linear-in-<span class="mono">Z</span> readout. The next experiment removes that readout entirely. A small (~10M parameter) fully matrix-native transformer — matrix <span class="mono">Q/K/V</span> with true matrix composition, no flatten anywhere in the forward pass, matrix LM head — trained from scratch on a synthetic task whose ground truth provably requires <span class="mono">K</span> independent scalars of state. If matrix structure is functional, this is where it shows.</p>
+                <p>The matrix-CODI negative result localized the failure to the linear-in-<span class="mono">Z</span> readout. The next experiment removes that readout entirely. A small (~10M parameter) fully matrix-native transformer — matrix <span class="mono">Q/K/V</span> with true matrix composition, no flatten anywhere in the forward pass, matrix LM head — trained from scratch on a synthetic task whose ground truth provably requires <span class="mono">K</span> independent scalars of state. If matrix structure is functional, this is the experiment that demonstrates it.</p>
                 <div class="budget">~30 H100-hours</div>
             </div>
 
@@ -672,14 +662,14 @@ footer a { color: var(--accent); }
             <div class="phase">
                 <div class="step">next →</div>
                 <h4>Byte-level JEPA with LeJEPA SIGReg</h4>
-                <p>Machine-native representations from raw bytes, no tokenizer, no language scaffolding. Translates WavJEPA (raw audio waveforms) to byte streams with a conv byte patcher, using LeJEPA's sketched isotropic Gaussian regularization to prevent collapse. No published byte-level JEPA exists as of April 2026. Genuine gap to fill.</p>
+                <p>Machine-native representations from raw bytes, no tokenizer, no language scaffolding. Translates WavJEPA (raw audio waveforms) to byte streams with a conv byte patcher, using LeJEPA's sketched isotropic Gaussian regularization to prevent collapse. No published byte-level JEPA exists as of April 2026.</p>
                 <div class="budget">~80 H100-hours</div>
             </div>
 
             <div class="phase">
                 <div class="step">next →</div>
                 <h4>Hierarchical long-context byte model</h4>
-                <p>Combines MBLM-style hierarchy (Mamba for long-range patch processing, transformer for local byte processing) with matrix-valued patch representations. Unlocks 1M+ byte context windows for the matrix architecture. Required infrastructure for multi-domain training.</p>
+                <p>Combines MBLM-style hierarchy (Mamba for long-range patch processing, transformer for local byte processing) with matrix-valued patch representations. Extends the matrix architecture to 1M+ byte context windows. Required infrastructure for multi-domain training.</p>
                 <div class="budget">~250 H100-hours</div>
             </div>
 
@@ -707,7 +697,7 @@ footer a { color: var(--accent); }
             <div class="phase">
                 <div class="step">stretch →</div>
                 <h4>Fully matrix-native architecture at scale</h4>
-                <p>HELM showed a fully hyperbolic billion-parameter LLM can match Euclidean baselines when every operation commits to the structured space. We'd replicate the approach with matrix-valued tokens: matrix attention, matrix FFN, matrix normalization, no flatten anywhere. Compute-intensive, only justified if the smaller experiments produce strong signal.</p>
+                <p>HELM showed a fully hyperbolic billion-parameter LLM can match Euclidean baselines when every operation commits to the structured space. Replicate the approach with matrix-valued tokens: matrix attention, matrix FFN, matrix normalization, no flatten anywhere. Compute-intensive, only justified if the smaller experiments produce strong signal.</p>
                 <div class="budget">~5,000 H100-hours</div>
             </div>
         </div>
@@ -736,15 +726,15 @@ footer a { color: var(--accent); }
             </div>
             <div class="dead">
                 <h4>Cross-domain transfer (original framing)</h4>
-                <p>The original "matrix structure enables cross-domain transfer" hypothesis was killed by six fatal attacks before any experiment ran. The question survives as a research direction but needed a sharper formulation and larger scale to be testable.</p>
+                <p>The original "matrix structure enables cross-domain transfer" hypothesis was ruled out by six fatal attacks before any experiment ran. The question survives as a research direction but needed a sharper formulation and larger scale to be testable.</p>
             </div>
             <div class="dead">
                 <h4>Thought interleaving at toy scale</h4>
-                <p>CoCoMix-style thought interleaving mechanisms don't produce benefits below ~10M parameters. The mechanism works but the scale is insufficient to measure what it unlocks.</p>
+                <p>CoCoMix-style thought interleaving mechanisms don't produce benefits below ~10M parameters. The mechanism works but the scale is insufficient to measure its benefit.</p>
             </div>
             <div class="dead">
                 <h4>Learned byte segmentation at small scale</h4>
-                <p>Learned segmentation boundaries consistently lose to fixed-stride segmentation at the scales I tested. The learning signal isn't strong enough below ~100M parameters. BLT works at 8B, so this may reverse at scale — but not within this compute regime.</p>
+                <p>Learned segmentation boundaries consistently underperform fixed-stride segmentation at the scales I tested. The learning signal isn't strong enough below ~100M parameters. BLT works at 8B, so this may reverse at scale — but not within this compute regime.</p>
             </div>
         </div>
     </div>
